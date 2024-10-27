@@ -1,19 +1,22 @@
-from smart_pandas.config_reader import ConfigReader
+from smart_pandas import pandas as pd
 
 
-smart_dataframe = ConfigReader().read_config(path="examples/example_config.yaml")
+data = pd.DataFrame(
+    {
+        "user_id": ["1", "2", "3"],
+        "name": ["Ned", "Roland", "Tom"],
+        "weight": [78, 74, 80],
+        "height": [180, 182, 185],
+        "age": [31, 31, 34],
+        "life_expectancy": [80, 80, 80],
+    }
+)
+data.config.init(config_path="examples/example_config.yaml")
 
-print(smart_dataframe.name)
-# life_expectancy_modelling_data
-
-print(smart_dataframe.raw_features)
-# ['weight', 'height', 'age']
-
-print(smart_dataframe.derived_features)
-# ['bmi']
-
-print(smart_dataframe.model_features)
-# ['age', 'bmi']
-
-print(smart_dataframe.target)
-# ['life_expectancy']
+print(data.config.raw_features)
+"""
+       weight  height  age
+0      78     180   31
+1      74     182   31
+2      80     185   34
+"""

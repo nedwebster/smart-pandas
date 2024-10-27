@@ -1,10 +1,10 @@
+from pydantic import BaseModel
 from smart_pandas.column_set import ColumnSet
 
 
-class SmartDataFrame:
-    def __init__(self, name: str, column_set: ColumnSet):
-        self.name = name
-        self.column_set = column_set
+class DataConfig(BaseModel):
+    name: str
+    column_set: ColumnSet
 
     @property
     def raw_features(self):
