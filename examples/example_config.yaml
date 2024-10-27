@@ -1,0 +1,47 @@
+{
+  name: "life_expectancy_modelling_data",
+  columns: [
+    {
+      name: "user_id",
+      type: "str",
+      labels: ["unique_identifier"],
+      description: "Unique identifier for the person"
+    },
+    {
+      name: "name",
+      type: "str",
+      labels: ["metadata"],
+      description: "Name of the person"
+    },
+    {
+      name: "weight",
+      type: "float",
+      labels: ["raw_feature"],
+      description: "Weight of the person in kg"
+    },
+    {
+      name: "height",
+      type: "float",
+      labels: ["raw_feature"],
+      description: "Height of the person in cm"
+    },
+    {
+      name: "age",
+      type: "int",
+      labels: ["raw_feature", "model_feature"],
+      description: "Age of the person in years"
+    },
+    {
+      name: "bmi",
+      type: "float",
+      labels: ["derived_feature", "model_feature"],
+      description: "BMI of the person"
+    },
+    {
+      name: "life_expectancy",
+      type: "int",
+      labels: ["target"],
+      description: "Life expectancy of the person in years"
+    },
+  ]
+}
