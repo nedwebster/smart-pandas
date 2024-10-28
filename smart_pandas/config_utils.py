@@ -1,5 +1,6 @@
 from typing import List
 import yaml
+import pandera as pa
 
 from smart_pandas.column import Column
 from smart_pandas.column_set import ColumnSet
@@ -21,10 +22,12 @@ def build_label_set(label_strings: List[str]) -> LabelSet:
     return LabelSet(labels=[build_label(label) for label in label_strings])
 
 
-def build_column(name: str, type: str, labels: List[str], description: str) -> Column:
+def build_column(
+    name: str, schema: dict, labels: List[str], description: str
+) -> Column:
     return Column(
         name=name,
-        type=type,
+        schema=pa.Column(**schema),
         labels=build_label_set(labels),
         description=description,
     )
