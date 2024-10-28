@@ -70,6 +70,11 @@ class RowTimestamp(Label):
     dataset_limit: int = 1
 
 
+class Weight(Label):
+    name: str = "weight"
+    dataset_limit: int = 1
+
+
 LABEL_MAP = {
     obj().name: obj
     for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass)
