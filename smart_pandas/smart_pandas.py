@@ -29,3 +29,7 @@ class SmartPandas:
     @property
     def target(self):
         return self._obj[self.config.target]
+
+    @property
+    def schema(self):
+        return self.config.schema

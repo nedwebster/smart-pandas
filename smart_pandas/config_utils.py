@@ -41,5 +41,8 @@ def read_config(path: str) -> ColumnSet:
     config = read_yaml(path)
     name = config["name"]
     column_set = build_column_set(config["columns"])
+    df_schema_kwargs = config.get("df_schema_kwargs", {})
 
-    return DataConfig(name=name, column_set=column_set)
+    return DataConfig(
+        name=name, column_set=column_set, df_schema_kwargs=df_schema_kwargs
+    )
