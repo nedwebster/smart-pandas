@@ -43,7 +43,20 @@ class SmartPandas:
     def schema(self):
         return self.config.schema
 
-    def validate(self):
-        validated_data = self.config.schema.validate(self._obj)
+    def validate(self, **kwargs):
+        """
+        Validate the DataFrame using the pandera schema defined in the config.
+
+        Parameters
+        ----------
+        kwargs
+            Additional keyword arguments to pass to the pandera schema validate method.
+
+        Returns
+        -------
+        validated_data: pd.DataFrame
+            The validated DataFrame.
+        """
+        validated_data = self.config.schema.validate(self._obj, **kwargs)
         validated_data.config.init(config=self.config)
         return validated_data
