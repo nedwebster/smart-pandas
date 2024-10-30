@@ -42,3 +42,8 @@ class SmartPandas:
     @property
     def schema(self):
         return self.config.schema
+
+    def validate(self):
+        validated_data = self.config.schema.validate(self._obj)
+        validated_data.config.init(config=self.config)
+        return validated_data
