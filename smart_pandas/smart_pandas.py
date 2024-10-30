@@ -1,4 +1,7 @@
+from typing import Optional
+
 import pandas as pd
+from smart_pandas.column_set import ColumnSet
 from smart_pandas.config_utils import read_config
 
 
@@ -7,8 +10,14 @@ class SmartPandas:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def init(self, config_path: str):
-        self.config = read_config(config_path)
+    def init(
+        self, config_path: Optional[str] = None, config: Optional[ColumnSet] = None
+    ):
+        if config is None:
+            if config_path is None:
+                raise ValueError("Either config or config_path must be provided")
+            config = read_config(config_path)
+        self.config = config
 
     @property
     def name(self):
