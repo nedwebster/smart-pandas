@@ -43,20 +43,27 @@ class SmartPandas:
     def schema(self):
         return self.config.schema
 
-    def validate(self, **kwargs):
+    def validate(self, inplace: bool = False, **kwargs):
         """
         Validate the DataFrame using the pandera schema defined in the config.
 
         Parameters
         ----------
+        inplace : bool
+            Whether to validate the DataFrame in place or return a new validated DataFrame.
         kwargs
             Additional keyword arguments to pass to the pandera schema validate method.
 
         Returns
         -------
-        validated_data: pd.DataFrame
-            The validated DataFrame.
+        validated_data: pd.DataFrame or None
+            The validated DataFrame. If inplace is True, returns None.
         """
-        validated_data = self.config.schema.validate(self._obj, **kwargs)
+        if inplace:
+            self.config.schema.validate(self._obj, inplace=inplace, **kwargs)
+            return None
+        validated_data = self.config.schema.validate(
+            self._obj, inplace=inplace, **kwargs
+        )
         validated_data.config.init(config=self.config)
         return validated_data
