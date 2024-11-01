@@ -8,6 +8,7 @@ dependencies = [
     "pandas>=2.2.3",
     "pydantic>=2.9.2",
     "pyyaml>=6.0.2",
+    "pandera>=0.20.4",
 ]
 
 [tool.uv]
@@ -15,6 +16,7 @@ package = true
 dev-dependencies = [
     "pytest>=8.3.3",
     "ruff>=0.7.1",
+    "ipykernel>=6.29.5",
 ]
 
 [tool.pytest.ini_options]

@@ -12,43 +12,43 @@ Define a dataframe config in a `.yaml` file.
   columns: [
     {
       name: "user_id",
-      type: "str",
+      schema: {"dtype": "str"},
       labels: ["unique_identifier"],
       description: "Unique identifier for the person"
     },
     {
       name: "name",
-      type: "str",
+      schema: {"dtype": "str"},
       labels: ["metadata"],
       description: "Name of the person"
     },
     {
       name: "weight",
-      type: "float",
+      schema: {"dtype": "float"},
       labels: ["raw_feature"],
       description: "Weight of the person in kg"
     },
     {
       name: "height",
-      type: "float",
+      schema: {"dtype": "float"},
       labels: ["raw_feature"],
       description: "Height of the person in cm"
     },
     {
       name: "age",
-      type: "int",
+      schema: {"dtype": "int"},
       labels: ["raw_feature", "model_feature"],
       description: "Age of the person in years"
     },
     {
       name: "bmi",
-      type: "float",
+      schema: {"dtype": "float"},
       labels: ["derived_feature", "model_feature"],
       description: "BMI of the person"
     },
     {
       name: "life_expectancy",
-      type: "int",
+      schema: {"dtype": "int"},
       labels: ["target"],
       description: "Life expectancy of the person in years"
     },

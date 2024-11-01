@@ -1,5 +1,6 @@
 from typing import Optional
 from dataclasses import dataclass
+import pandera as pa
 
 from smart_pandas.label import LABEL_MAP
 from smart_pandas.label_set import LabelSet
@@ -13,8 +14,8 @@ class Column:
     ----------
     name: str
         The name of the column.
-    type: str
-        The type of the column.
+    schema: pa.Column
+        The schema of the column.
     labels: LabelSet
         The labels associated with the column.
     description: Optional[str]
@@ -23,7 +24,7 @@ class Column:
     """
 
     name: str
-    type: str
+    schema: pa.Column
     labels: LabelSet
     description: Optional[str] = None
 
