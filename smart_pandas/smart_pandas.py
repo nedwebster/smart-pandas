@@ -3,6 +3,7 @@ from typing import Optional
 import pandas as pd
 from smart_pandas.column_set import ColumnSet
 from smart_pandas.config_utils import read_config
+from smart_pandas.state import State
 
 
 @pd.api.extensions.register_dataframe_accessor("smart_pandas")
@@ -19,43 +20,44 @@ class SmartPandas:
             if config_path is None:
                 raise ValueError("Either config or config_path must be provided")
             config = read_config(config_path)
-        self.smart_pandas = config
+        self.config = config
+        self.state = State.from_data(data=self._obj, config=self.config)
 
     @property
     def name(self):
-        return self.smart_pandas.name
+        return self.config.name
 
     @property
     def raw_features(self):
-        return self._obj[self.smart_pandas.raw_features]
+        return self._obj[self.config.raw_features]
 
     @property
     def derived_features(self):
-        return self._obj[self.smart_pandas.derived_features]
+        return self._obj[self.config.derived_features]
 
     @property
     def model_features(self):
-        return self._obj[self.smart_pandas.model_features]
+        return self._obj[self.config.model_features]
 
     @property
     def target(self):
-        return self._obj[self.smart_pandas.target]
+        return self._obj[self.config.target]
 
     @property
     def unique_identifier(self):
-        return self._obj[self.smart_pandas.unique_identifier]
+        return self._obj[self.config.unique_identifier]
 
     @property
     def metadata(self):
-        return self._obj[self.smart_pandas.metadata]
+        return self._obj[self.config.metadata]
 
     @property
     def row_timestamp(self):
-        return self._obj[self.smart_pandas.row_timestamp]
+        return self._obj[self.config.row_timestamp]
 
     @property
     def schema(self):
-        return self.smart_pandas.schema
+        return self.config.schema
 
     def validate(self, inplace: bool = False, **kwargs):
         """
@@ -74,10 +76,14 @@ class SmartPandas:
             The validated DataFrame. If inplace is True, returns None.
         """
         if inplace:
-            self.smart_pandas.schema.validate(self._obj, inplace=inplace, **kwargs)
+            self.config.schema.validate(self._obj, inplace=inplace, **kwargs)
             return None
-        validated_data = self.smart_pandas.schema.validate(
+        validated_data = self.config.schema.validate(
             self._obj, inplace=inplace, **kwargs
         )
-        validated_data.smart_pandas.init(config=self.smart_pandas)
+        validated_data.config.init(config=self.config)
         return validated_data
+
+    def update_state(self):
+        """Update the state of the dataframe based on the config and the data."""
+        self.state.infer_state(data=self._obj, config=self.config)
