@@ -1,0 +1,93 @@
+columns:
+-   description: A unique identifier for each passenger
+    name: id
+    schema:
+        dtype: int
+    tags:
+    - unique_identifier
+-   description: Whether the passenger survived or not
+    name: survived
+    schema:
+        dtype: int
+    tags:
+    - target
+-   description: The class of the passenger
+    name: pclass
+    schema:
+        dtype: int
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The full name of the passenger
+    name: name
+    schema:
+        dtype: str
+    tags:
+    - metadata
+-   description: The sex of the passenger
+    name: sex
+    schema:
+        dtype: str
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The age of the passenger
+    name: age
+    schema:
+        dtype: float
+        nullable: true
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The total number of the passengers' siblings and spouse
+    name: sibsp
+    schema:
+        dtype: int
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The total number of the passengers' parents and children
+    name: parch
+    schema:
+        dtype: int
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The ticket number for that passenger
+    name: ticket
+    schema:
+        dtype: str
+    tags:
+    - metadata
+-   description: The cabin the passenger stayed in
+    name: cabin
+    schema:
+        dtype: str
+        nullable: true
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The port the passenger embarked from
+    name: embarked
+    schema:
+        dtype: str
+        nullable: true
+    tags:
+    - raw_feature
+    - model_feature
+-   description: The fare the passenger paid
+    name: fare
+    schema:
+        dtype: float
+        nullable: true
+    tags:
+    - raw_feature
+    - model_feature
+-   description: Number of cabins the passenger and family had
+    name: number_of_cabins
+    schema:
+        dtype: int
+    tags:
+    - derived_feature
+    - model_feature
+name: titanic_modelling_data
