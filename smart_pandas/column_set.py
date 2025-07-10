@@ -14,14 +14,14 @@ class ColumnSet(BaseModel):
     @field_validator("columns")
     @classmethod
     def validate_column_compatibilities(cls, columns: List[Column]) -> List[Column]:
-        label_collection = [column.labels.labels for column in columns]
-        flattened_label_collection = [
-            label for labels in label_collection for label in labels
+        tag_collection = [column.tags.tags for column in columns]
+        flattened_tag_collection = [
+            tag for tags in tag_collection for tag in tags
         ]
-        for label, counter in Counter(flattened_label_collection).items():
-            if label.dataset_limit is not None and counter > label.dataset_limit:
+        for tag, counter in Counter(flattened_tag_collection).items():
+            if tag.dataset_limit is not None and counter > tag.dataset_limit:
                 raise ValueError(
-                    f"Label {label.name} occurs too many times in column set."
+                    f"Tag {tag.name} occurs too many times in column set."
                 )
 
         return columns

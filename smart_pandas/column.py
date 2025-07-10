@@ -2,8 +2,8 @@ from typing import Optional
 from dataclasses import dataclass
 import pandera as pa
 
-from smart_pandas.label import LABEL_MAP
-from smart_pandas.label_set import LabelSet
+from smart_pandas.tag import TAG_MAP
+from smart_pandas.tag_set import TagSet
 
 
 @dataclass
@@ -16,8 +16,8 @@ class Column:
         The name of the column.
     schema: pa.Column
         The schema of the column.
-    labels: LabelSet
-        The labels associated with the column.
+    tags: TagSet
+        The tags associated with the column.
     description: Optional[str]
         A description of the column.
 
@@ -25,11 +25,11 @@ class Column:
 
     name: str
     schema: pa.Column
-    labels: LabelSet
+    tags: TagSet
     description: Optional[str] = None
 
     def __post_init__(
         self,
     ):
-        for label_name in LABEL_MAP.keys():
-            setattr(self, label_name, any(label == label_name for label in self.labels))
+        for tag_name in TAG_MAP.keys():
+            setattr(self, tag_name, any(tag == tag_name for tag in self.tags))

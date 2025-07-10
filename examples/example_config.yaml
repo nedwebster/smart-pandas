@@ -5,43 +5,43 @@
     {
       name: "user_id",
       schema: {"dtype": "str"},
-      labels: ["unique_identifier"],
+      tags: ["unique_identifier"],
       description: "Unique identifier for the person"
     },
     {
       name: "name",
       schema: {"dtype": "str"},
-      labels: ["metadata"],
+      tags: ["metadata"],
       description: "Name of the person"
     },
     {
       name: "weight",
       schema: {"dtype": "float"},
-      labels: ["raw_feature"],
+      tags: ["raw_feature"],
       description: "Weight of the person in kg"
     },
     {
       name: "height",
       schema: {"dtype": "float"},
-      labels: ["raw_feature"],
+      tags: ["raw_feature"],
       description: "Height of the person in cm"
     },
     {
       name: "age",
       schema: {"dtype": "int"},
-      labels: ["raw_feature", "model_feature"],
+      tags: ["raw_feature", "model_feature"],
       description: "Age of the person in years"
     },
     {
       name: "bmi",
       schema: {"dtype": "float"},
-      labels: ["derived_feature", "model_feature"],
+      tags: ["derived_feature", "model_feature"],
       description: "BMI of the person"
     },
     {
       name: "life_expectancy",
       schema: {"dtype": "int"},
-      labels: ["target"],
+      tags: ["target"],
       description: "Life expectancy of the person in years"
     },
   ]

@@ -4,10 +4,10 @@ from smart_pandas import pandas as pd
 
 
 @pytest.fixture
-def column_labels():
-    from smart_pandas.label import LABEL_MAP
+def column_tags():
+    from smart_pandas.tag import TAG_MAP
 
-    return [value() for value in LABEL_MAP.values()]
+    return [value() for value in TAG_MAP.values()]
 
 
 @pytest.fixture
