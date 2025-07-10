@@ -15,6 +15,7 @@ def smart_data():
     smart_data = pd.DataFrame(
         {
             "user_id": ["1", "2", "3"],
+            "timestamp": [pd.Timestamp("2020-01-01"), pd.Timestamp("2020-01-02"), pd.Timestamp("2020-01-03")],
             "name": ["Ned", "Roland", "Tom"],
             "weight": [78, 74, 80],
             "height": [180, 182, 185],

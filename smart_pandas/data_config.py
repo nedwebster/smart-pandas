@@ -1,7 +1,5 @@
-import pandera as pa
 from pydantic import BaseModel
 from smart_pandas.column_set import ColumnSet
-from smart_pandas.schema_utils import default_df_schema_params
 
 
 class DataConfig(BaseModel):
@@ -44,34 +42,29 @@ class DataConfig(BaseModel):
         ]
 
     @property
-    def target(self):
+    def target(self) -> list[str]:
         return [
             column.name for column in self.column_set
             if any(tag.name == "target" for tag in column.tags)
-        ] or None
+        ]
 
     @property
-    def unique_identifier(self):
+    def unique_identifier(self) -> list[str]:
         return [
             column.name for column in self.column_set
             if any(tag.name == "unique_identifier" for tag in column.tags)
-        ] or None
+        ]
 
     @property
-    def metadata(self):
+    def metadata(self) -> list[str]:
         return [
             column.name for column in self.column_set
             if any(tag.name == "metadata" for tag in column.tags)
-        ] or None
+        ]
 
     @property
-    def row_timestamp(self):
+    def row_timestamp(self) -> list[str]:
         return [
             column.name for column in self.column_set
             if any(tag.name == "row_timestamp" for tag in column.tags)
-        ] or None
-
-    @property
-    def schema(self) -> pa.DataFrameSchema:
-        column_schemas = {column.name: column.schema for column in self.column_set}
-        return pa.DataFrameSchema(column_schemas, **default_df_schema_params())
+        ]
