@@ -12,6 +12,11 @@ Data validation is an important part of any data intesive application, and that 
 
 `smart-pandas` offers a way to cleanly answer those questions with a single schema, rather than having to build multiple schemas for various stages of the project.
 
+![Data Flow](docs/images/data_flow.png)
+
+The diagram above shows a simple example of the different 'groups' of columns you may want moving through your ML data pipeline. Those groups can vary from stage to stage, and can even be different depending on which ML lifecycle stage you're at.
+
+
 ## Basic Usage
 
 To use `smart-pandas`, all you need to do is swap your Pandas import to use `smart-pandas`, which will give you access to the `smart-pandas` api extension.
