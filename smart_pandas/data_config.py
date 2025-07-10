@@ -11,7 +11,8 @@ class DataConfig(BaseModel):
     @property
     def raw_features(self):
         return [
-            column.name for column in self.column_set if "raw_feature" in column.labels
+            column.name for column in self.column_set 
+            if any(tag.name == "raw_feature" for tag in column.tags)
         ]
 
     @property
@@ -19,7 +20,7 @@ class DataConfig(BaseModel):
         return [
             column.name
             for column in self.column_set
-            if "derived_feature" in column.labels
+            if any(tag.name == "derived_feature" for tag in column.tags)
         ]
 
     @property
@@ -27,13 +28,14 @@ class DataConfig(BaseModel):
         return [
             column.name
             for column in self.column_set
-            if "model_feature" in column.labels
+            if any(tag.name == "model_feature" for tag in column.tags)
         ]
 
     @property
     def target(self):
         return [
-            column.name for column in self.column_set if "target" in column.labels
+            column.name for column in self.column_set 
+            if any(tag.name == "target" for tag in column.tags)
         ] or None
 
     @property
