@@ -110,8 +110,26 @@ class State:
 
         self.name = StateName.UNKNOWN
 
+    def get_state_columns(self, config: DataConfig) -> list[str]:
+        """
+        Get the columns that are relevant to the current state.
+
+        Parameters
+        ----------
+        config: DataConfig
+            The config to get the columns from.
+        """
+        columns = config.unique_identifier + config.metadata + config.row_timestamp
+        if self.ml_stage == MLStage.TRAINING:
+            columns += config.target
+        if self.name == StateName.PROCESSED:
+            columns += config.model_features
+        elif self.name == StateName.RAW:
+            columns += config.raw_features
+        return columns
+
     def __str__(self):
-        return f"{self.name.value} ({self.ml_stage.value})"
+        return f"{self.name.value}, {self.ml_stage.value}"
 
     def __repr__(self):
-        return f"{self.name} ({self.ml_stage})"
+        return f"{self.name}, {self.ml_stage}"

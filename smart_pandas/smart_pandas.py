@@ -1,9 +1,12 @@
+import copy
+import warnings
 from typing import Optional
 
 import pandas as pd
-from smart_pandas.column_set import ColumnSet
 from smart_pandas.config_utils import read_config
-from smart_pandas.state import State
+from smart_pandas.data_config import DataConfig
+from smart_pandas.state import State, StateName
+from smart_pandas.schema import build_schema
 
 
 @pd.api.extensions.register_dataframe_accessor("smart_pandas")
@@ -13,7 +16,7 @@ class SmartPandas:
         self._obj = pandas_obj
 
     def init(
-        self, config_path: Optional[str] = None, config: Optional[ColumnSet] = None
+        self, config_path: Optional[str] = None, config: Optional[DataConfig] = None
     ):
         """Initialise the config for the dataframe via either a config path or a config object."""
         if config is None:
@@ -22,6 +25,7 @@ class SmartPandas:
             config = read_config(config_path)
         self.config = config
         self.state = State.from_data(data=self._obj, config=self.config)
+        self.schema = build_schema(self.config, self.state)
 
     @property
     def name(self):
@@ -55,18 +59,16 @@ class SmartPandas:
     def row_timestamp(self):
         return self._obj[self.config.row_timestamp]
 
-    @property
-    def schema(self):
-        return self.config.schema
-
-    def validate(self, inplace: bool = False, **kwargs):
+    def validate(self, inplace: bool = False, update_state: bool = True, **kwargs):
         """
-        Validate the DataFrame using the pandera schema defined in the config.
+        Validate the DataFrame using the pandera schema, based on the current state.
 
         Parameters
         ----------
         inplace : bool
             Whether to validate the DataFrame in place or return a new validated DataFrame.
+        update_state : bool
+            Whether to update the state of the dataframe prior to validation.
         kwargs
             Additional keyword arguments to pass to the pandera schema validate method.
 
@@ -75,15 +77,39 @@ class SmartPandas:
         validated_data: pd.DataFrame or None
             The validated DataFrame. If inplace is True, returns None.
         """
+        if update_state:
+            self.update_state()
+
+        if self.state in [StateName.UNKNOWN, StateName.CORRUPTED]:
+            raise ValueError(
+                f"Cannot validate data in {self.state.name.value} state, please check your data and try again."
+            )
+
         if inplace:
-            self.config.schema.validate(self._obj, inplace=inplace, **kwargs)
+            self.schema.validate(self._obj, inplace=inplace, **kwargs)
             return None
-        validated_data = self.config.schema.validate(
+        validated_data = self.schema.validate(
             self._obj, inplace=inplace, **kwargs
         )
-        validated_data.config.init(config=self.config)
+
+        # re-initialise the config after overwriting the dataframe object pointer
+        validated_data.smart_pandas.init(config=self.config)
         return validated_data
 
     def update_state(self):
-        """Update the state of the dataframe based on the config and the data."""
+        """
+        Update the state of the dataframe based on the config and the data.
+
+        If the state has changed, the schema will be updated to reflect the new state.
+        """
+        old_state = copy.deepcopy(self.state)
         self.state.infer_state(data=self._obj, config=self.config)
+
+        if self.state.name in [StateName.CORRUPTED, StateName.UNKNOWN]:
+            warnings.warn(
+                "The state of the dataframe is either corrupt or unknown, please check your data and try again.",
+                UserWarning,
+            )
+
+        if old_state != self.state:
+            self.schema = build_schema(self.config, self.state)
