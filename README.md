@@ -1,4 +1,7 @@
+<img src="docs/images/logo.png" alt="Smart Pandas Logo" width="200"/>
+
 # Smart Pandas
+
 
 `smart-pandas` is a Pandas api extension for defining machine learning data schemas, via a config file and the open source Pandera package, for Pandas dataframes. The goal of the package is to simplify the data flow for end to end ML pipelines by having clear definitions for columns, and allowing easy accessability of column groups at all times.
 
