@@ -9,6 +9,12 @@
       description: "Unique identifier for the person"
     },
     {
+      name: "timestamp",
+      schema: {"dtype": "datetime"},
+      tags: ["row_timestamp"],
+      description: "Timestamp of the data"
+    },
+    {
       name: "name",
       schema: {"dtype": "str"},
       tags: ["metadata"],
