@@ -11,20 +11,20 @@ data = pd.DataFrame(
         "life_expectancy": [80, 80, 80],
     }
 )
-data.config.init(config_path="examples/example_config.yaml")
+data.smart_pandas.init(config_path="examples/example_config.yaml")
 data["bmi"] = data["weight"] / (data["height"] / 100) ** 2
 
-print(type(data.config.schema))  # smart-pandas constructs a pandera DataFrameSchema
+print(type(data.smart_pandas.schema))  # smart-pandas constructs a pandera DataFrameSchema
 """
 <class 'pandera.api.pandas.container.DataFrameSchema'>
 """
 
 validated_data = (
-    data.config.validate()
+    data.smart_pandas.validate()
 )  # runs validation using the pandera DataFrameSchema
 
 # validated_data still has the smart-pandas config attached
-print(validated_data.config.raw_features)
+print(validated_data.smart_pandas.raw_features)
 """
        weight  height  age
 0      78     180   31

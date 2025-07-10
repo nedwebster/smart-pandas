@@ -11,9 +11,9 @@ data = pd.DataFrame(
         "life_expectancy": [80, 80, 80],
     }
 )
-data.config.init(config_path="examples/example_config.yaml")
+data.smart_pandas.init(config_path="examples/example_config.yaml")
 
-print(data.config.raw_features)
+print(data.smart_pandas.raw_features)
 """
        weight  height  age
 0      78     180   31

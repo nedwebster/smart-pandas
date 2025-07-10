@@ -22,6 +22,6 @@ def smart_data():
             "life_expectancy": [80, 80, 80],
         }
     )
-    smart_data.config.init(config_path="examples/example_config.yaml")
+    smart_data.smart_pandas.init(config_path="examples/example_config.yaml")
     smart_data["bmi"] = smart_data["weight"] / (smart_data["height"] / 100) ** 2
     return smart_data
