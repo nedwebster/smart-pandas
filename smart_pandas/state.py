@@ -2,7 +2,7 @@ from enum import Enum
 
 import pandas as pd
 
-from smart_pandas.data_config import DataConfig
+from smart_pandas.config.data_config import DataConfig
 
 
 class StateName(Enum):

@@ -3,8 +3,8 @@ import warnings
 from typing import Optional
 
 import pandas as pd
-from smart_pandas.config_utils import read_config
-from smart_pandas.data_config import DataConfig
+from smart_pandas.config.config_utils import read_config
+from smart_pandas.config.data_config import DataConfig
 from smart_pandas.state import State, StateName
 from smart_pandas.schema import build_schema
 

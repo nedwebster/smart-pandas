@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, field_validator
 
-from smart_pandas.column import Column
+from smart_pandas.config.column import Column
 
 
 class ColumnSet(BaseModel):

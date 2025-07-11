@@ -1,6 +1,6 @@
 
 import pandera as pa
-from smart_pandas.data_config import DataConfig
+from smart_pandas.config.data_config import DataConfig
 from smart_pandas.state import State
 
 
@@ -25,5 +25,5 @@ def build_schema(config: DataConfig, state: State) -> pa.DataFrameSchema:
         The state to build the schema from.
     """
     state_columns = state.get_state_columns(config)
-    column_schemas = {column.name: column.schema for column in config.column_set if column.name in state_columns}
+    column_schemas = {column.name: column.data_schema for column in config.columns if column.name in state_columns}
     return pa.DataFrameSchema(column_schemas, **get_default_df_schema_params())
