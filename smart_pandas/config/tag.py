@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import Any
 from pydantic import BaseModel
 
 
@@ -17,8 +17,8 @@ class Tag(BaseModel):
     """
 
     name: str
-    compatible_with: List[str] = []
-    dataset_limit: Optional[int] = None
+    compatible_with: list[str] = []
+    dataset_limit: int | None = None
 
     def __eq__(self, other: str) -> bool:
         return self.name == other
@@ -31,7 +31,7 @@ class Tag(BaseModel):
 
 
 # Configuration dictionary for predefined tags
-TAG_CONFIGS: Dict[str, Dict[str, Any]] = {
+TAG_CONFIGS: dict[str, dict[str, Any]] = {
     "target": {
         "name": "target",
         "compatible_with": [],
