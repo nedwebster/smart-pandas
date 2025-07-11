@@ -1,39 +1,39 @@
 columns:
 -   description: A unique identifier for each passenger
     name: id
-    schema:
+    data_schema:
         dtype: int
     tags:
     - unique_identifier
 -   description: Whether the passenger survived or not
     name: survived
-    schema:
+    data_schema:
         dtype: int
     tags:
     - target
 -   description: The class of the passenger
     name: pclass
-    schema:
+    data_schema:
         dtype: int
     tags:
     - raw_feature
     - model_feature
 -   description: The full name of the passenger
     name: name
-    schema:
+    data_schema:
         dtype: str
     tags:
     - metadata
 -   description: The sex of the passenger
     name: sex
-    schema:
+    data_schema:
         dtype: str
     tags:
     - raw_feature
     - model_feature
 -   description: The age of the passenger
     name: age
-    schema:
+    data_schema:
         dtype: float
         nullable: true
     tags:
@@ -41,27 +41,27 @@ columns:
     - model_feature
 -   description: The total number of the passengers' siblings and spouse
     name: sibsp
-    schema:
+    data_schema:
         dtype: int
     tags:
     - raw_feature
     - model_feature
 -   description: The total number of the passengers' parents and children
     name: parch
-    schema:
+    data_schema:
         dtype: int
     tags:
     - raw_feature
     - model_feature
 -   description: The ticket number for that passenger
     name: ticket
-    schema:
+    data_schema:
         dtype: str
     tags:
     - metadata
 -   description: The cabin the passenger stayed in
     name: cabin
-    schema:
+    data_schema:
         dtype: str
         nullable: true
     tags:
@@ -69,7 +69,7 @@ columns:
     - model_feature
 -   description: The port the passenger embarked from
     name: embarked
-    schema:
+    data_schema:
         dtype: str
         nullable: true
     tags:
@@ -77,7 +77,7 @@ columns:
     - model_feature
 -   description: The fare the passenger paid
     name: fare
-    schema:
+    data_schema:
         dtype: float
         nullable: true
     tags:
@@ -85,7 +85,7 @@ columns:
     - model_feature
 -   description: Number of cabins the passenger and family had
     name: number_of_cabins
-    schema:
+    data_schema:
         dtype: int
     tags:
     - derived_feature

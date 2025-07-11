@@ -4,49 +4,49 @@
   columns: [
     {
       name: "user_id",
-      schema: {"dtype": "str"},
+      data_schema: {"dtype": "str"},
       tags: ["unique_identifier"],
       description: "Unique identifier for the person"
     },
     {
       name: "timestamp",
-      schema: {"dtype": "datetime"},
+      data_schema: {"dtype": "datetime"},
       tags: ["row_timestamp"],
       description: "Timestamp of the data"
     },
     {
       name: "name",
-      schema: {"dtype": "str"},
+      data_schema: {"dtype": "str"},
       tags: ["metadata"],
       description: "Name of the person"
     },
     {
       name: "weight",
-      schema: {"dtype": "float"},
+      data_schema: {"dtype": "float"},
       tags: ["raw_feature"],
       description: "Weight of the person in kg"
     },
     {
       name: "height",
-      schema: {"dtype": "float"},
+      data_schema: {"dtype": "float"},
       tags: ["raw_feature"],
       description: "Height of the person in cm"
     },
     {
       name: "age",
-      schema: {"dtype": "int"},
+      data_schema: {"dtype": "int"},
       tags: ["raw_feature", "model_feature"],
       description: "Age of the person in years"
     },
     {
       name: "bmi",
-      schema: {"dtype": "float"},
+      data_schema: {"dtype": "float"},
       tags: ["derived_feature", "model_feature"],
       description: "BMI of the person"
     },
     {
       name: "life_expectancy",
-      schema: {"dtype": "int"},
+      data_schema: {"dtype": "int"},
       tags: ["target"],
       description: "Life expectancy of the person in years"
     },
