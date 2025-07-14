@@ -19,7 +19,8 @@ class TagSet(BaseModel):
     @field_validator("tags", mode="after")
     def validate_compatability(cls, tags: list[Tag]) -> list[Tag]:
         for tag_pair in combinations(tags, 2):
-            if tag_pair[0] not in tag_pair[1].compatible_with:
+            if (tag_pair[0].name not in tag_pair[1].compatible_with and 
+                tag_pair[1].name not in tag_pair[0].compatible_with):
                 raise ValueError(
                     f"Tags {tag_pair[0].name} and {tag_pair[1].name} are not compatible"
                 )
