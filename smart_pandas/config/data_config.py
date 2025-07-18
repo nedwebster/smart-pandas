@@ -29,7 +29,7 @@ class DataConfig(BaseModel):
         """Helper method to get column names by tag."""
         return [
             column.name for column in self.columns
-            if any(tag.name == tag_name for tag in column.tags)
+            if tag_name in column.tags
         ]
 
     @computed_field
