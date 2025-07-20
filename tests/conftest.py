@@ -23,6 +23,15 @@ def smart_data():
             "life_expectancy": [80, 80, 80],
         }
     )
-    smart_data.smart_pandas.init(config_path="examples/example_config.yaml")
+    smart_data.smart_pandas.init(config_path="tests/example_configs/example_config.yaml")
     smart_data["bmi"] = smart_data["weight"] / (smart_data["height"] / 100) ** 2
     return smart_data
+
+
+@pytest.fixture
+def load_config():
+    from smart_pandas.config.config_utils import read_config
+
+    def _loader(path):
+        return read_config(f"tests/example_configs/{path}.yaml")
+    return _loader

@@ -180,3 +180,7 @@ class State:
         if not isinstance(other, State):
             return False
         return self.name == other.name and self.ml_stage == other.ml_stage
+
+
+class StateError(Exception):
+    """Base class for state-related errors."""

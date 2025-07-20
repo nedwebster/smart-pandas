@@ -3,6 +3,7 @@ from itertools import combinations
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from smart_pandas.config.tag import create_tag, Tag
+from smart_pandas.config.validation_exceptions import TagCompatibilityError
 
 
 class TagSet(BaseModel):
@@ -21,9 +22,7 @@ class TagSet(BaseModel):
         for tag_pair in combinations(tags, 2):
             if (tag_pair[0].name not in tag_pair[1].compatible_with and 
                 tag_pair[1].name not in tag_pair[0].compatible_with):
-                raise ValueError(
-                    f"Tags {tag_pair[0].name} and {tag_pair[1].name} are not compatible"
-                )
+                raise TagCompatibilityError([tag_pair[0].name, tag_pair[1].name], "")  # column name added in Column class exception
         return tags
 
 

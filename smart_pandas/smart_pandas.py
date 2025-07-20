@@ -1,11 +1,11 @@
 import copy
 import warnings
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 from smart_pandas.config.config_utils import read_config
 from smart_pandas.config.data_config import DataConfig
-from smart_pandas.state import State, StateName
+from smart_pandas.state import State, StateName, StateError
 from smart_pandas.schema import build_schema
 
 
@@ -56,9 +56,6 @@ class SmartPandas:
         """
         if config is None and config_path is None:
             raise ValueError("Either config or config_path must be provided")
-        
-        if config is not None and not isinstance(config, DataConfig):
-            raise TypeError("config must be a DataConfig instance")
         
         if config is None:
             config = read_config(config_path)
@@ -156,7 +153,7 @@ class SmartPandas:
             self.update_state()
 
         if self.state.name in [StateName.UNKNOWN, StateName.CORRUPTED]:
-            raise ValueError(
+            raise StateError(
                 f"Cannot validate data in {self.state.name.value} state. "
                 "Please check your data and try again."
             )

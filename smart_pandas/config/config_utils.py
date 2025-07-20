@@ -53,11 +53,40 @@ def read_config(path: str) -> DataConfig:
         If the configuration file doesn't exist
     yaml.YAMLError
         If the YAML is malformed
-    ValueError
+    ConfigValidationError
         If the configuration is invalid
     """
     try:
         config_data = read_yaml(path)
+        
         return DataConfig(**config_data)
     except Exception as e:
+        # Re-raise our custom validation errors as-is
+        if hasattr(e, '__class__') and 'ValidationError' in e.__class__.__name__:
+            raise
         raise ValueError(f"Error creating DataConfig from {path}: {e}")
+
+
+def validate_config_file(path: str) -> bool:
+    """Validate a config file without loading it completely.
+    
+    Parameters
+    ----------
+    path : str
+        Path to the configuration YAML file
+        
+    Returns
+    -------
+    bool
+        True if valid, False otherwise
+        
+    Raises
+    ------
+    ConfigValidationError
+        If validation fails (includes details about the issues)
+    """
+    try:
+        read_config(path)
+        return True
+    except Exception:
+        return False

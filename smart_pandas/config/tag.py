@@ -1,5 +1,5 @@
 from typing import Any
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class Tag(BaseModel):
@@ -30,42 +30,56 @@ class Tag(BaseModel):
         return hash(repr(self))
 
 
+TAG_COMPATIBILITY_PAIRS = [
+    ("raw_feature", "model_feature"),
+    ("raw_feature", "row_timestamp"),
+    ("derived_feature", "model_feature"),
+    ("metadata", "unique_identifier"),
+    ("metadata", "row_timestamp"),
+]
+
+def get_compatible_tags(tag_name: str, tag_pairs: list[tuple[str, str]]) -> list[str]:
+    """Get all tags compatible with a given tag name, based on a list of compatible tag tuples."""
+    relevant_tag_pairs = [pair for pair in tag_pairs if tag_name in pair]
+    compatible_tags = [tag for pair in relevant_tag_pairs for tag in pair if tag != tag_name]
+    return compatible_tags
+
 # Configuration dictionary for predefined tags
 TAG_CONFIGS: dict[str, dict[str, Any]] = {
     "target": {
         "name": "target",
-        "compatible_with": [],
+        "compatible_with": get_compatible_tags("target", TAG_COMPATIBILITY_PAIRS),
         "dataset_limit": 1
     },
     "raw_feature": {
         "name": "raw_feature",
-        "compatible_with": ["model_feature", "row_timestamp"]
+        "compatible_with": get_compatible_tags("raw_feature", TAG_COMPATIBILITY_PAIRS),
     },
     "derived_feature": {
         "name": "derived_feature",
-        "compatible_with": ["model_feature"]
+        "compatible_with": get_compatible_tags("derived_feature", TAG_COMPATIBILITY_PAIRS),
     },
     "metadata": {
         "name": "metadata",
-        "compatible_with": ["unique_identifier", "row_timestamp"]
+        "compatible_with": get_compatible_tags("metadata", TAG_COMPATIBILITY_PAIRS),
     },
     "unique_identifier": {
         "name": "unique_identifier",
-        "compatible_with": ["metadata"],
+        "compatible_with": get_compatible_tags("unique_identifier", TAG_COMPATIBILITY_PAIRS),
         "dataset_limit": 1
     },
     "model_feature": {
         "name": "model_feature",
-        "compatible_with": ["raw_feature", "derived_feature"]
+        "compatible_with": get_compatible_tags("model_feature", TAG_COMPATIBILITY_PAIRS),
     },
     "row_timestamp": {
         "name": "row_timestamp",
-        "compatible_with": ["raw_feature", "metadata"],
+        "compatible_with": get_compatible_tags("row_timestamp", TAG_COMPATIBILITY_PAIRS),
         "dataset_limit": 1
     },
     "weight": {
         "name": "weight",
-        "compatible_with": [],
+        "compatible_with": get_compatible_tags("weight", TAG_COMPATIBILITY_PAIRS),
         "dataset_limit": 1
     }
 }
