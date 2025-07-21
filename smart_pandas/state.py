@@ -20,8 +20,8 @@ class StateName(Enum):
         return {
             StateName.RAW: ["model_features", "derived_features"],
             StateName.PROCESSED: [],
-            StateName.UNKNOWN: [],
-            StateName.CORRUPTED: [],
+            StateName.UNKNOWN: ["raw_features", "derived_features", "model_features"],
+            StateName.CORRUPTED: [tag.data_attribute_name for tag in TAGS.values()],
         }[self]
 
 
@@ -98,9 +98,10 @@ class StateInferenceEngine:
         # Determine processing state based on feature columns
         if missing_counts["model_features"] == 0:
             return StateName.PROCESSED
-        elif missing_counts["model_features"] > 0 and missing_counts["raw_features"] == 0:
+        elif missing_counts["derived_features"] == len(config.derived_features) and missing_counts["raw_features"] == 0:
             return StateName.RAW
 
+        # return unknown if there are model features are partially computed
         return StateName.UNKNOWN
 
     @staticmethod

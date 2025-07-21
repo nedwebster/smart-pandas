@@ -60,32 +60,28 @@ class SmartPandas:
         """
         if config is None and config_path is None:
             raise ValueError("Either config or config_path must be provided")
-        
+
         if config is None:
             config = read_config(config_path)
 
         self.config = config
+        self.name = self.config.name
         self.auto_update = auto_update
         self.state = State.from_data(data=self._obj, config=self.config)
         self.schema = build_schema(self.config, self.state)
-        self._set_data_attributes()
 
     def update(self) -> None:
         """Update SmartPandas properties if the datas column hash has changed."""
         if hash(tuple(self._obj.columns)) != self.column_hash:
             self.column_hash = hash(tuple(self._obj.columns))
             self._update_state()
-            self._set_data_attributes()
 
-    def _set_data_attributes(self) -> None:
-        """Set the data attributes of the SmartPandas accessor based on the config and the current state."""
-        self.name = self.config.name
-        for tag in TAGS.values():
-            if (
-                tag.data_attribute_name not in self.state.name.incompatibilities
-                and tag.data_attribute_name not in self.state.ml_stage.incompatibilities
-            ):
-                setattr(self, tag.data_attribute_name, self._obj[getattr(self.config, tag.data_attribute_name)])
+    def _get_data_attribute(self, attr_name: str) -> pd.Series:
+        """Get the data attribute of the SmartPandas accessor based on the config and the current state."""
+        if attr_name not in self.state.name.incompatibilities and attr_name not in self.state.ml_stage.incompatibilities:
+            return self._obj.loc[:, getattr(self.config, attr_name)]
+        else:
+            return None
 
     def _update_state(self) -> None:
         """
@@ -97,19 +93,17 @@ class SmartPandas:
         ------
         RuntimeError
             If SmartPandas is not initialized
-        """
-
+        """            
         old_state = copy.copy(self.state)
         self.state.infer_state(data=self._obj, config=self.config)
 
         if self.state.name in [StateName.CORRUPTED, StateName.UNKNOWN]:
             warnings.warn(
-                f"The state of the DataFrame is {self.state.name.value}. "
-                "Please check your data and try again.",
+                f"The state of the DataFrame has moved from {old_state.name.value} to {self.state.name.value}. "
+                "Check your columns are correct.",
                 UserWarning,
-                stacklevel=2
             )
-
+            return
         if old_state != self.state:
             self.schema = build_schema(self.config, self.state)
     
@@ -158,10 +152,12 @@ class SmartPandas:
         return validated_data
 
     def __getattribute__(self, name: str) -> Any:
-        """Custom getter to allow validating and updating the data attributes when accessing them."""
+        """Custom getter to allow validating and updating state before accessing data attributes."""
         if name in [tag.data_attribute_name for tag in TAGS.values()] + ["state", "validate"]:
             if self.config is None:
                 raise RuntimeError("SmartPandas not initialized. Call data.smart_pandas.load_config() first.")
             if self.auto_update:
                 self.update()
+            if name not in ["state", "validate"]:
+                return self._get_data_attribute(name)
         return super().__getattribute__(name)
