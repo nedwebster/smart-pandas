@@ -30,15 +30,17 @@ class SmartPandas:
         self.config: DataConfig | None = None
         self.state: State | None = None
         self.schema: object | None = None
+        self.auto_update: bool = True
         self.column_hash = hash(tuple(self._obj.columns))
 
-    def init(
+    def load_config(
         self, 
         config_path: str | None = None, 
-        config: DataConfig | None = None
+        config: DataConfig | None = None,
+        auto_update: bool = True
     ) -> None:
         """
-        Initialize the configuration for the DataFrame.
+        Load the configuration for the SmartPandas accessor, and update the state and schema.
         
         Parameters
         ----------
@@ -46,7 +48,9 @@ class SmartPandas:
             Path to the configuration YAML file
         config : DataConfig, optional
             DataConfig object to use directly
-            
+        auto_update : bool, default True
+            Whether to automatically run update() after retrieving attributes
+
         Raises
         ------
         ValueError
@@ -59,17 +63,12 @@ class SmartPandas:
         
         if config is None:
             config = read_config(config_path)
-            
+
         self.config = config
+        self.auto_update = auto_update
         self.state = State.from_data(data=self._obj, config=self.config)
         self.schema = build_schema(self.config, self.state)
-
         self._set_data_attributes()
-
-    def _ensure_initialized(self) -> None:
-        """Ensure the accessor has been initialized with the config."""
-        if self.config is None:
-            raise RuntimeError("SmartPandas not initialized. Call data.smart_pandas.init() first.")
 
     def update(self) -> None:
         """Update SmartPandas properties if the datas column hash has changed."""
@@ -152,12 +151,14 @@ class SmartPandas:
         validated_data = self.schema.validate(self._obj, inplace=inplace, **kwargs)
         
         # Re-initialize the config after overwriting the DataFrame object pointer
-        validated_data.smart_pandas.init(config=self.config)
+        validated_data.smart_pandas.load_config(config=self.config)
         return validated_data
 
     def __getattribute__(self, name: str) -> Any:
         """Custom getter to allow validating and updating the data attributes when accessing them."""
-        if name in [data_attribute.name for data_attribute in DATA_ATTRIBUTES] + ["state", "validate", "update_state"]:
-            self._ensure_initialized()
-            self.update()
+        if name in [data_attribute.name for data_attribute in DATA_ATTRIBUTES] + ["state", "validate"]:
+            if self.config is None:
+                raise RuntimeError("SmartPandas not initialized. Call data.smart_pandas.load_config() first.")
+            if self.auto_update:
+                self.update()
         return super().__getattribute__(name)

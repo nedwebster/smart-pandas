@@ -23,14 +23,14 @@ def smart_data_raw():
             "life_expectancy": [80, 80, 80],
         }
     )
-    smart_data.smart_pandas.init(config_path="tests/example_configs/example_config.yaml")
+    smart_data.smart_pandas.load_config(config_path="tests/example_configs/example_config.yaml")
     return smart_data
 
 
 @pytest.fixture()
 def smart_data_processed(smart_data_raw):
     smart_data_processed = smart_data_raw.copy()
-    smart_data_processed.smart_pandas.init(config_path="tests/example_configs/example_config.yaml")
+    smart_data_processed.smart_pandas.load_config(config_path="tests/example_configs/example_config.yaml")
     smart_data_processed.loc[:, "bmi"] = smart_data_processed["weight"] / (smart_data_processed["height"] / 100) ** 2
     return smart_data_processed
 

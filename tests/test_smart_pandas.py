@@ -31,3 +31,19 @@ def test_smart_pandas_processed(smart_data_processed):
     pd.testing.assert_frame_equal(
         smart_data_processed.smart_pandas.model_features, smart_data_processed[["age", "bmi"]]
     )
+
+
+def test_smart_pandas_auto_update(smart_data_raw):
+    smart_data_raw.smart_pandas.auto_update = False
+    assert smart_data_raw.smart_pandas.state == State(name=StateName.RAW, ml_stage=MLStage.TRAINING)
+
+    # validate the state has not automatically updated
+    smart_data_raw.loc[:, "bmi"] = smart_data_raw["weight"] / (smart_data_raw["height"] / 100) ** 2
+    assert smart_data_raw.smart_pandas.state == State(name=StateName.RAW, ml_stage=MLStage.TRAINING) 
+
+    smart_data_raw.smart_pandas.update()
+    assert smart_data_raw.smart_pandas.state == State(name=StateName.PROCESSED, ml_stage=MLStage.TRAINING)
+
+
+def test_validate(smart_data_raw):
+    smart_data_raw.smart_pandas.validate()
