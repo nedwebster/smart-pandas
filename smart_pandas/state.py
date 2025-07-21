@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
+from smart_pandas.config.tag import TAGS
+
 if TYPE_CHECKING:
     from smart_pandas.config.data_config import DataConfig
 
@@ -18,6 +20,15 @@ class MLStage(Enum):
     TRAINING = "training"
     INFERENCE = "inference"
 
+
+STATE_NAME_INCOMPATIBILITIES = {
+    StateName.RAW: ["model_features", "derived_features"],
+    StateName.PROCESSED: [],
+}
+ML_STAGE_INCOMPATIBILITIES = {
+    MLStage.TRAINING: [],
+    MLStage.INFERENCE: ["target"],
+}
 
 class StateInferenceEngine:
     """Engine for inferring state from data and configuration."""
@@ -62,29 +73,42 @@ class StateInferenceEngine:
         StateName
             The inferred state name
         """
-        # Check for missing columns in critical categories
+        # Find missing columns in all tags
         missing_counts = {}
-        for tag in ["raw_features", "model_features", "target", "unique_identifier", "metadata", "row_timestamp"]:
-            required_cols = getattr(config, tag)
-            missing_counts[tag] = sum(1 for col in required_cols if col not in data.columns)
-        
-        # Check for corrupted state - missing required columns
-        for tag in ["unique_identifier", "metadata", "row_timestamp"]:
-            if missing_counts[tag] > 0:
+        for tag in TAGS.values():
+            tag_cols = getattr(config, tag.data_attribute_name)
+            missing_counts[tag.data_attribute_name] = sum(1 for col in tag_cols if col not in data.columns)
+    
+            if tag.required and missing_counts[tag.data_attribute_name] > 0:
                 return StateName.CORRUPTED
         
-        # Check target columns for training stage
         if ml_stage == MLStage.TRAINING and missing_counts["target"] > 0:
             return StateName.CORRUPTED
-        
-        # Determine processing state
+
+        # Determine processing state based on feature columns
         if missing_counts["model_features"] == 0:
             return StateName.PROCESSED
         elif missing_counts["model_features"] > 0 and missing_counts["raw_features"] == 0:
             return StateName.RAW
-        
+
         return StateName.UNKNOWN
 
+    @staticmethod
+    def get_state_columns(config: "DataConfig", state: "State") -> list[str]:
+        """
+        Get the columns that are relevant to the current state.
+        """
+
+        columns = []
+        data_attributes = [
+            tag.data_attribute_name for tag in TAGS.values()
+            if tag.data_attribute_name not in STATE_NAME_INCOMPATIBILITIES[state.name]
+            and tag.data_attribute_name not in ML_STAGE_INCOMPATIBILITIES[state.ml_stage]
+        ]
+        for data_attribute in data_attributes:
+            columns.extend(getattr(config, data_attribute))
+
+        return columns
 
 class State:
     """
@@ -145,30 +169,7 @@ class State:
         self.name = self._inference_engine.infer_state_name(data, config, self.ml_stage)
 
     def get_state_columns(self, config: "DataConfig") -> list[str]:
-        """
-        Get the columns that are relevant to the current state.
-
-        Parameters
-        ----------
-        config : DataConfig
-            The configuration object
-            
-        Returns
-        -------
-        list[str]
-            List of column names relevant to the current state
-        """
-        columns = config.unique_identifier + config.metadata + config.row_timestamp
-        
-        if self.ml_stage == MLStage.TRAINING:
-            columns.extend(config.target)
-            
-        if self.name == StateName.PROCESSED:
-            columns.extend(config.model_features)
-        elif self.name == StateName.RAW:
-            columns.extend(config.raw_features)
-            
-        return columns
+        return StateInferenceEngine.get_state_columns(config, self)
 
     def __str__(self) -> str:
         return f"{self.name.value}, {self.ml_stage.value}"

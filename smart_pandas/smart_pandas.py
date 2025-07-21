@@ -5,9 +5,9 @@ from typing import Any
 import pandas as pd
 from smart_pandas.config.config_utils import read_config
 from smart_pandas.config.data_config import DataConfig
-from smart_pandas.state import State, StateName, StateError
+from smart_pandas.state import State, StateName, StateError, STATE_NAME_INCOMPATIBILITIES, ML_STAGE_INCOMPATIBILITIES
 from smart_pandas.schema import build_schema
-from smart_pandas.data_attributes import DATA_ATTRIBUTES
+from smart_pandas.config.tag import TAGS
 
 @pd.api.extensions.register_dataframe_accessor("smart_pandas")
 class SmartPandas:
@@ -80,9 +80,12 @@ class SmartPandas:
     def _set_data_attributes(self) -> None:
         """Set the data attributes of the SmartPandas accessor based on the config and the current state."""
         self.name = self.config.name
-        for data_attribute in DATA_ATTRIBUTES:
-            if self.state.name not in data_attribute.invalid_states and self.state.ml_stage not in data_attribute.invalid_ml_stages:
-                setattr(self, data_attribute.name, self._obj[getattr(self.config, data_attribute.name)])
+        for tag in TAGS.values():
+            if (
+                tag.data_attribute_name not in STATE_NAME_INCOMPATIBILITIES[self.state.name]
+                and tag.data_attribute_name not in ML_STAGE_INCOMPATIBILITIES[self.state.ml_stage]
+            ):
+                setattr(self, tag.data_attribute_name, self._obj[getattr(self.config, tag.data_attribute_name)])
 
     def _update_state(self) -> None:
         """
@@ -156,7 +159,7 @@ class SmartPandas:
 
     def __getattribute__(self, name: str) -> Any:
         """Custom getter to allow validating and updating the data attributes when accessing them."""
-        if name in [data_attribute.name for data_attribute in DATA_ATTRIBUTES] + ["state", "validate"]:
+        if name in [tag.data_attribute_name for tag in TAGS.values()] + ["state", "validate"]:
             if self.config is None:
                 raise RuntimeError("SmartPandas not initialized. Call data.smart_pandas.load_config() first.")
             if self.auto_update:

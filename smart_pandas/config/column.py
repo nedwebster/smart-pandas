@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator, field_serializer, ValidationError
 import pandera as pa
 
-from smart_pandas.config.tag import TAG_CONFIGS
+from smart_pandas.config.tag import TAGS
 from smart_pandas.config.tag_set import TagSet
 from smart_pandas.config.validation_exceptions import TagCompatibilityError
 
@@ -50,7 +50,7 @@ class Column(BaseModel):
     @model_validator(mode='after')
     def set_tag_attributes(self):
         """Set tag attributes on the column for easy access."""
-        for tag_name in TAG_CONFIGS.keys():
+        for tag_name in TAGS.keys():
             setattr(self, tag_name, any(tag == tag_name for tag in self.tags))
         return self
 

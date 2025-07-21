@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from smart_pandas.config.column_set import ColumnSet
-from smart_pandas.data_attributes import DATA_ATTRIBUTES
+from smart_pandas.config.tag import TAGS
 
 class DataConfig(BaseModel):
     """
@@ -28,8 +28,8 @@ class DataConfig(BaseModel):
     @model_validator(mode="after")
     def set_data_attributes(self):
         """Set the data attributes dynamically based on the column set."""
-        for data_attribute in DATA_ATTRIBUTES:
-            setattr(self, data_attribute.name, self._get_columns_by_tag(data_attribute.tag_name))
+        for tag in TAGS.values():
+            setattr(self, tag.data_attribute_name, self._get_columns_by_tag(tag.name))
         return self
 
     def _get_columns_by_tag(self, tag_name: str) -> list[str]:

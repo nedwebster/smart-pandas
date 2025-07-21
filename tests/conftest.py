@@ -5,9 +5,9 @@ from smart_pandas import pandas as pd
 
 @pytest.fixture
 def column_tags():
-    from smart_pandas.config.tag import TAG_CONFIGS, create_tag
+    from smart_pandas.config.tag import TAGS
 
-    return [create_tag(tag_name) for tag_name in TAG_CONFIGS.keys()]
+    return [TAGS[tag_name] for tag_name in TAGS.keys()]
 
 
 @pytest.fixture()

@@ -2,7 +2,7 @@ from itertools import combinations
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from smart_pandas.config.tag import create_tag, Tag
+from smart_pandas.config.tag import TAGS, Tag
 from smart_pandas.config.validation_exceptions import TagCompatibilityError
 
 
@@ -14,7 +14,7 @@ class TagSet(BaseModel):
     @field_validator("tags", mode="before")
     def parse_tags(cls, tags: list[str] | list[Tag]) -> list[Tag]:
         if len(tags) >= 0 and isinstance(tags[0], str):
-            return [create_tag(tag) for tag in tags]
+            return [TAGS[tag] for tag in tags]
         return tags
 
     @field_validator("tags", mode="after")

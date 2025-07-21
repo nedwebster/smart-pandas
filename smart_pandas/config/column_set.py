@@ -31,8 +31,10 @@ class ColumnSet(BaseModel):
             tag for tags in tag_collection for tag in tags
         ]
         for tag, counter in Counter(flattened_tag_collection).items():
-            if tag.dataset_limit is not None and counter > tag.dataset_limit:
-                raise TagLimitExceededError(tag.name, tag.dataset_limit, counter)
+            if tag.config_limit[0] is not None and counter < tag.config_limit[0]:
+                raise TagLimitExceededError(tag.name, tag.config_limit[0], counter)
+            if tag.config_limit[1] is not None and counter > tag.config_limit[1]:
+                raise TagLimitExceededError(tag.name, tag.config_limit[1], counter)
 
         return columns
 
