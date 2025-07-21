@@ -14,21 +14,31 @@ class StateName(Enum):
     PROCESSED = "processed"
     UNKNOWN = "unknown"
     CORRUPTED = "corrupted"
+    
+    @property
+    def incompatibilities(self) -> list[str]:
+        return {
+            StateName.RAW: ["model_features", "derived_features"],
+            StateName.PROCESSED: [],
+            StateName.UNKNOWN: [],
+            StateName.CORRUPTED: [],
+        }[self]
 
 
 class MLStage(Enum):
+    """Enum representing the ML pipeline stage."""
+    
+    # Format: (value, incompatible_attributes)
     TRAINING = "training"
     INFERENCE = "inference"
 
-
-STATE_NAME_INCOMPATIBILITIES = {
-    StateName.RAW: ["model_features", "derived_features"],
-    StateName.PROCESSED: [],
-}
-ML_STAGE_INCOMPATIBILITIES = {
-    MLStage.TRAINING: [],
-    MLStage.INFERENCE: ["target"],
-}
+    @property
+    def incompatibilities(self) -> list[str]:
+        return {
+            MLStage.TRAINING: [],
+            MLStage.INFERENCE: ["target"],
+        }[self]
+    
 
 class StateInferenceEngine:
     """Engine for inferring state from data and configuration."""
@@ -102,8 +112,8 @@ class StateInferenceEngine:
         columns = []
         data_attributes = [
             tag.data_attribute_name for tag in TAGS.values()
-            if tag.data_attribute_name not in STATE_NAME_INCOMPATIBILITIES[state.name]
-            and tag.data_attribute_name not in ML_STAGE_INCOMPATIBILITIES[state.ml_stage]
+            if tag.data_attribute_name not in state.name.incompatibilities
+            and tag.data_attribute_name not in state.ml_stage.incompatibilities
         ]
         for data_attribute in data_attributes:
             columns.extend(getattr(config, data_attribute))

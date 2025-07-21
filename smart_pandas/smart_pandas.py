@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 from smart_pandas.config.config_utils import read_config
 from smart_pandas.config.data_config import DataConfig
-from smart_pandas.state import State, StateName, StateError, STATE_NAME_INCOMPATIBILITIES, ML_STAGE_INCOMPATIBILITIES
+from smart_pandas.state import State, StateName, StateError
 from smart_pandas.schema import build_schema
 from smart_pandas.config.tag import TAGS
 
@@ -82,8 +82,8 @@ class SmartPandas:
         self.name = self.config.name
         for tag in TAGS.values():
             if (
-                tag.data_attribute_name not in STATE_NAME_INCOMPATIBILITIES[self.state.name]
-                and tag.data_attribute_name not in ML_STAGE_INCOMPATIBILITIES[self.state.ml_stage]
+                tag.data_attribute_name not in self.state.name.incompatibilities
+                and tag.data_attribute_name not in self.state.ml_stage.incompatibilities
             ):
                 setattr(self, tag.data_attribute_name, self._obj[getattr(self.config, tag.data_attribute_name)])
 
@@ -98,8 +98,8 @@ class SmartPandas:
         RuntimeError
             If SmartPandas is not initialized
         """
-        
-        old_state = copy.deepcopy(self.state)
+
+        old_state = copy.copy(self.state)
         self.state.infer_state(data=self._obj, config=self.config)
 
         if self.state.name in [StateName.CORRUPTED, StateName.UNKNOWN]:

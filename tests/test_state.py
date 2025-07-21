@@ -1,6 +1,14 @@
 from smart_pandas.state import State, StateName, MLStage
 
 
+def test_state_name():
+    assert StateName.RAW.incompatibilities == ["model_features", "derived_features"]
+
+
+def test_ml_stage():
+    assert MLStage.INFERENCE.incompatibilities == ["target"]
+
+
 def test_state_from_data(smart_data_raw):
     state = State.from_data(data=smart_data_raw, config=smart_data_raw.smart_pandas.config)
     assert state.ml_stage == MLStage.TRAINING
