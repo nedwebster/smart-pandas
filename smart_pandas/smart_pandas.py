@@ -1,21 +1,20 @@
 import copy
 import warnings
-from typing import Optional
+from typing import Any
 
 import pandas as pd
 from smart_pandas.config.config_utils import read_config
 from smart_pandas.config.data_config import DataConfig
 from smart_pandas.state import State, StateName, StateError
 from smart_pandas.schema import build_schema
-
+from smart_pandas.data_attributes import DATA_ATTRIBUTES
 
 @pd.api.extensions.register_dataframe_accessor("smart_pandas")
 class SmartPandas:
     """
     Pandas API extension for smart pandas functionality.
     
-    This extension provides configuration-driven data validation and state management
-    for machine learning workflows.
+    This extension provides configuration-driven data validation and state management for machine learning workflows.
     """
     
     def __init__(self, pandas_obj: pd.DataFrame):
@@ -28,14 +27,15 @@ class SmartPandas:
             The pandas DataFrame this accessor is attached to
         """
         self._obj = pandas_obj
-        self.config: Optional[DataConfig] = None
-        self.state: Optional[State] = None
-        self.schema: Optional[object] = None
+        self.config: DataConfig | None = None
+        self.state: State | None = None
+        self.schema: object | None = None
+        self.column_hash = hash(tuple(self._obj.columns))
 
     def init(
         self, 
-        config_path: Optional[str] = None, 
-        config: Optional[DataConfig] = None
+        config_path: str | None = None, 
+        config: DataConfig | None = None
     ) -> None:
         """
         Initialize the configuration for the DataFrame.
@@ -64,65 +64,58 @@ class SmartPandas:
         self.state = State.from_data(data=self._obj, config=self.config)
         self.schema = build_schema(self.config, self.state)
 
+        self._set_data_attributes()
+
     def _ensure_initialized(self) -> None:
-        """Ensure the accessor has been initialized."""
+        """Ensure the accessor has been initialized with the config."""
         if self.config is None:
-            raise RuntimeError("SmartPandas not initialized. Call init() first.")
+            raise RuntimeError("SmartPandas not initialized. Call data.smart_pandas.init() first.")
 
-    @property
-    def name(self) -> str:
-        """Get the dataset name from configuration."""
-        self._ensure_initialized()
-        return self.config.name
+    def update(self) -> None:
+        """Update SmartPandas properties if the datas column hash has changed."""
+        if hash(tuple(self._obj.columns)) != self.column_hash:
+            self.column_hash = hash(tuple(self._obj.columns))
+            self._update_state()
+            self._set_data_attributes()
 
-    @property
-    def raw_features(self) -> pd.DataFrame:
-        """Get raw feature columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.raw_features]
+    def _set_data_attributes(self) -> None:
+        """Set the data attributes of the SmartPandas accessor based on the config and the current state."""
+        self.name = self.config.name
+        for data_attribute in DATA_ATTRIBUTES:
+            if self.state.name not in data_attribute.invalid_states and self.state.ml_stage not in data_attribute.invalid_ml_stages:
+                setattr(self, data_attribute.name, self._obj[getattr(self.config, data_attribute.name)])
 
-    @property
-    def derived_features(self) -> pd.DataFrame:
-        """Get derived feature columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.derived_features]
+    def _update_state(self) -> None:
+        """
+        Update the state of the DataFrame based on the config and current data.
 
-    @property
-    def model_features(self) -> pd.DataFrame:
-        """Get model feature columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.model_features]
+        If the state has changed, the schema will be updated to reflect the new state.
+        
+        Raises
+        ------
+        RuntimeError
+            If SmartPandas is not initialized
+        """
+        
+        old_state = copy.deepcopy(self.state)
+        self.state.infer_state(data=self._obj, config=self.config)
 
-    @property
-    def target(self) -> pd.DataFrame:
-        """Get target columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.target]
+        if self.state.name in [StateName.CORRUPTED, StateName.UNKNOWN]:
+            warnings.warn(
+                f"The state of the DataFrame is {self.state.name.value}. "
+                "Please check your data and try again.",
+                UserWarning,
+                stacklevel=2
+            )
 
-    @property
-    def unique_identifier(self) -> pd.DataFrame:
-        """Get unique identifier columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.unique_identifier]
-
-    @property
-    def metadata(self) -> pd.DataFrame:
-        """Get metadata columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.metadata]
-
-    @property
-    def row_timestamp(self) -> pd.DataFrame:
-        """Get row timestamp columns as a DataFrame."""
-        self._ensure_initialized()
-        return self._obj[self.config.row_timestamp]
-
+        if old_state != self.state:
+            self.schema = build_schema(self.config, self.state)
+    
     def validate(
         self, 
-        inplace: bool = False, 
-        update_state: bool = True, 
+        inplace: bool = False,
         **kwargs
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame:
         """
         Validate the DataFrame using the Pandera schema based on the current state.
 
@@ -130,8 +123,6 @@ class SmartPandas:
         ----------
         inplace : bool, default False
             Whether to validate the DataFrame in place or return a new validated DataFrame
-        update_state : bool, default True
-            Whether to update the state of the DataFrame prior to validation
         **kwargs
             Additional keyword arguments to pass to the Pandera schema validate method
 
@@ -147,10 +138,6 @@ class SmartPandas:
         ValueError
             If the data is in an invalid state for validation
         """
-        self._ensure_initialized()
-        
-        if update_state:
-            self.update_state()
 
         if self.state.name in [StateName.UNKNOWN, StateName.CORRUPTED]:
             raise StateError(
@@ -161,36 +148,16 @@ class SmartPandas:
         if inplace:
             self.schema.validate(self._obj, inplace=inplace, **kwargs)
             return None
-            
+
         validated_data = self.schema.validate(self._obj, inplace=inplace, **kwargs)
         
         # Re-initialize the config after overwriting the DataFrame object pointer
         validated_data.smart_pandas.init(config=self.config)
         return validated_data
 
-    def update_state(self) -> None:
-        """
-        Update the state of the DataFrame based on the config and current data.
-
-        If the state has changed, the schema will be updated to reflect the new state.
-        
-        Raises
-        ------
-        RuntimeError
-            If SmartPandas is not initialized
-        """
-        self._ensure_initialized()
-        
-        old_state = copy.deepcopy(self.state)
-        self.state.infer_state(data=self._obj, config=self.config)
-
-        if self.state.name in [StateName.CORRUPTED, StateName.UNKNOWN]:
-            warnings.warn(
-                f"The state of the DataFrame is {self.state.name.value}. "
-                "Please check your data and try again.",
-                UserWarning,
-                stacklevel=2
-            )
-
-        if old_state != self.state:
-            self.schema = build_schema(self.config, self.state)
+    def __getattribute__(self, name: str) -> Any:
+        """Custom getter to allow validating and updating the data attributes when accessing them."""
+        if name in [data_attribute.name for data_attribute in DATA_ATTRIBUTES] + ["state", "validate", "update_state"]:
+            self._ensure_initialized()
+            self.update()
+        return super().__getattribute__(name)

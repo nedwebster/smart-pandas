@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from smart_pandas.config.column_set import ColumnSet
-
+from smart_pandas.data_attributes import DATA_ATTRIBUTES
 
 class DataConfig(BaseModel):
     """
@@ -25,37 +25,16 @@ class DataConfig(BaseModel):
             return ColumnSet(columns=v)
         return v
 
+    @model_validator(mode="after")
+    def set_data_attributes(self):
+        """Set the data attributes dynamically based on the column set."""
+        for data_attribute in DATA_ATTRIBUTES:
+            setattr(self, data_attribute.name, self._get_columns_by_tag(data_attribute.tag_name))
+        return self
+
     def _get_columns_by_tag(self, tag_name: str) -> list[str]:
         """Helper method to get column names by tag."""
         return [
             column.name for column in self.columns
             if tag_name in column.tags
         ]
-
-    @computed_field
-    def raw_features(self) -> list[str]:
-        return self._get_columns_by_tag("raw_feature")
-
-    @computed_field
-    def derived_features(self) -> list[str]:
-        return self._get_columns_by_tag("derived_feature")
-
-    @computed_field
-    def model_features(self) -> list[str]:
-        return self._get_columns_by_tag("model_feature")
-
-    @computed_field
-    def target(self) -> list[str]:
-        return self._get_columns_by_tag("target")
-
-    @computed_field
-    def unique_identifier(self) -> list[str]:
-        return self._get_columns_by_tag("unique_identifier")
-
-    @computed_field
-    def metadata(self) -> list[str]:
-        return self._get_columns_by_tag("metadata")
-
-    @computed_field
-    def row_timestamp(self) -> list[str]:
-        return self._get_columns_by_tag("row_timestamp")

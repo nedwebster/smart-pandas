@@ -10,8 +10,8 @@ def column_tags():
     return [create_tag(tag_name) for tag_name in TAG_CONFIGS.keys()]
 
 
-@pytest.fixture
-def smart_data():
+@pytest.fixture()
+def smart_data_raw():
     smart_data = pd.DataFrame(
         {
             "user_id": ["1", "2", "3"],
@@ -24,8 +24,15 @@ def smart_data():
         }
     )
     smart_data.smart_pandas.init(config_path="tests/example_configs/example_config.yaml")
-    smart_data["bmi"] = smart_data["weight"] / (smart_data["height"] / 100) ** 2
     return smart_data
+
+
+@pytest.fixture()
+def smart_data_processed(smart_data_raw):
+    smart_data_processed = smart_data_raw.copy()
+    smart_data_processed.smart_pandas.init(config_path="tests/example_configs/example_config.yaml")
+    smart_data_processed.loc[:, "bmi"] = smart_data_processed["weight"] / (smart_data_processed["height"] / 100) ** 2
+    return smart_data_processed
 
 
 @pytest.fixture
