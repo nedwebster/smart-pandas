@@ -4,118 +4,42 @@
 
 The tags system in Smart Pandas provides a flexible way to categorize and label columns in your datasets. Tags help define the role and purpose of each column, enabling better data management, validation, and automated processing workflows.
 
-## How Tags Work
+Tags define 4 key properties for the column that they are assigned to:
+- `data_attribute_name`: The name of the data attribute that the tag is associated with. This name is what is used to access columns with that tag, eg: `data.smart_pandas.raw_features`, where `raw_features` is the data attribute name.
+- `config_limit`: The upper and lower limit for the count of this tag in the config. Eg, a tag limit of (1, 2) means that there must be at least 1 and at most 2 columns with this tag in the config.
+- `required`: Whether a column with this tag is required for a valid dataset. If the tag has this value set to `True`, then the column must be present in the dataframe at all times. Note, this is whether the column is required to be in the dataframe, not whether the tag is required to be in the config. For example, the `target` tag is required in the config based on its `config_limit` value, but the column itself is not always required in the dataframe.
+- `compatible_with`: A set of tag names that this tag is compatible with.
 
-Each tag in Smart Pandas is represented by a class that inherits from the base `Tag` class. Tags have three main properties:
-
-- **name**: A unique string identifier for the tag
-- **compatible_with**: A list of other tags that can coexist with this tag on the same column
-- **dataset_limit**: An optional limit on how many columns in a dataset can have this tag
-
-### Tag Compatibility
-
-Tags can be compatible with other tags, meaning a single column can have multiple tags assigned to it. For example, a column tagged as `raw_feature` can also be tagged as `model_feature` since these tags are compatible.
-
-### Dataset Limits
-
-Some tags have dataset limits, meaning only a certain number of columns in a dataset can have that tag. For example, the `target` tag has a limit of 1, ensuring that only one column per dataset can be designated as the target variable.
 
 ## Available Tags
 
-### target
+Smart Pandas comes with pre-defined tags, the user should not need to create their own tags. The available tags are:
 
-**Purpose**: Identifies the target variable (dependent variable) in your dataset - the variable you want to predict or analyze.
+| Tag Name | Data Attribute Name | Config Limit | Required | Compatible With |
+|----------|-------------------|--------------|----------|----------------|
+| `target` | `target` | (1, 1) | No | - |
+| `raw_feature` | `raw_features` | (1, None) | No | `model_feature`, `row_timestamp` |
+| `derived_feature` | `derived_features` | (None, None) | No | `model_feature` |
+| `metadata` | `metadata` | (None, None) | No | `unique_identifier`, `row_timestamp` |
+| `unique_identifier` | `unique_identifier` | (1, 1) | Yes | `metadata` |
+| `model_feature` | `model_features` | (1, None) | No | `raw_feature`, `derived_feature` |
+| `row_timestamp` | `row_timestamp` | (1, 1) | Yes | `raw_feature`, `metadata` |
+| `weight` | `weight` | (None, 1) | No | - |
 
-**Use cases**:
-- Binary classification target (0/1, True/False)
-- Multi-class classification target
-- Regression target (continuous values)
-- Survival analysis endpoints
+### Tag Descriptions
 
-**Dataset limit**: 1 (only one target column per dataset)
+- **`target`**: The target variable for machine learning models. Exactly one column must have this tag.
+- **`raw_feature`**: Features that come directly from the raw data source. At least one column must have this tag, with no upper limit.
+- **`derived_feature`**: Features that are computed or derived from raw features. No limits on the number of columns.
+- **`metadata`**: Columns containing metadata about the data records. No limits on the number of columns.
+- **`unique_identifier`**: A column that uniquely identifies each row. Exactly one column must have this tag and must always be present in the dataset.
+- **`model_feature`**: Features that are ready to be used by machine learning models. At least one column must have this tag, with no upper limit.
+- **`row_timestamp`**: A timestamp column indicating when each row was created or recorded. Exactly one column must have this tag and must always be present in the dataset.
+- **`weight`**: Sample weights for machine learning models. At most one column can have this tag.
 
-### raw_feature
+### Config Limit Notation
 
-**Purpose**: Marks columns that contain original, unprocessed data directly from the source.
-
-**Use cases**:
-- Original sensor readings
-- Raw survey responses
-- Unprocessed text data
-- Original numerical measurements
-
-**Compatible with**: `model_feature`, `row_timestamp`
-
-### derived_feature
-
-**Purpose**: Identifies columns that have been created through feature engineering or data transformation from other columns.
-
-**Use cases**:
-- Calculated ratios or percentages
-- Aggregated statistics
-- Encoded categorical variables
-- Polynomial features
-- Principal components
-
-**Compatible with**: `model_feature`
-
-### model_feature
-
-**Purpose**: Designates columns that will be used as input features for machine learning models.
-
-**Use cases**:
-- Features selected for training
-- Preprocessed input variables
-- Engineered features ready for modeling
-
-**Compatible with**: `raw_feature`, `derived_feature`
-
-### metadata
-
-**Purpose**: Marks columns that contain information about the data itself rather than features for analysis.
-
-**Use cases**:
-- Data collection timestamps
-- Source system identifiers
-- Data quality flags
-- Processing batch IDs
-
-**Compatible with**: `unique_identifier`, `row_timestamp`
-
-### unique_identifier
-
-**Purpose**: Identifies the column that uniquely identifies each row in the dataset.
-
-**Use cases**:
-- Primary key columns
-- Customer IDs
-- Transaction IDs
-- Record identifiers
-
-**Compatible with**: `metadata`
-**Dataset limit**: 1 (only one unique identifier per dataset)
-
-### row_timestamp
-
-**Purpose**: Marks the column that contains the timestamp when each row's data was created or recorded.
-
-**Use cases**:
-- Transaction timestamps
-- Event occurrence times
-- Data collection dates
-- Record creation times
-
-**Compatible with**: `raw_feature`, `metadata`
-**Dataset limit**: 1 (only one row timestamp per dataset)
-
-### weight
-
-**Purpose**: Identifies a column that contains weights for observations, used in weighted analysis or modeling.
-
-**Use cases**:
-- Sampling weights
-- Importance weights
-- Frequency weights
-- Inverse probability weights
-
-**Dataset limit**: 1 (only one weight column per dataset)
+- `(1, 1)`: Exactly 1 column must have this tag
+- `(1, None)`: At least 1 column must have this tag, no upper limit
+- `(None, 1)`: At most 1 column can have this tag, no lower limit
+- `(None, None)`: No limits on the number of columns with this tag

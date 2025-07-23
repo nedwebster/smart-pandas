@@ -3,23 +3,22 @@
 # Smart Pandas
 
 
-`smart-pandas` is a Pandas api extension for defining machine learning data schemas, via a config file and the open source Pandera package, for Pandas dataframes. The goal of the package is to simplify the data flow for end to end ML pipelines by having clear definitions for columns, and allowing easy accessability of column groups at all times.
+`smart-pandas` provides a Pandas api extension for integrating machine learning data schemas via a config file and the open source Pandera package. The goal of the package is to simplify the data flow for end to end ML pipelines by having clear definitions for columns, and allowing easy accessability of column groups at all times.
 
-Data validation is an important part of any data intesive application, and that includes machine learning projects. However most schema frameworks lack the flexibiltiy and complexity to appropriately define schemas for ML datasets. There are two main considerations for data in the ML world:
+Data validation is an important part of any data intesive application, and that includes machine learning projects. However most schema frameworks lack the flexibiltiy and complexity to appropriately define schemas for ML datasets. As data flows through your ML pipeline, you code may add and/or remove columns at various stages, making a static schema difficult to maintain. Often you'll end up with various sets of column groupings with some semantic meaning, but no clear idea of what is available in the data at any given point in time. Smart Pandas solves this problem by allowing you to define a schema upfront which groups your columns into meaningful ML categories, and which can be dynamic based on the current stage of the ML process. Below are the two key things that `smart-pandas` provides:
 
-1. The data schema may vary slightly depending on which stage of the ML lifecycle you are in. Are you training your ML model, or are you generating predictions in a deployed service?
-2. Data columns fall into semantic groupings in the ML world, such as 'features', 'target(s)', 'weights', etc. which are not captured by traditional data schemas.
+1. Semantic groupings of your data columns through `tags`, eg: `raw_features`, `model_features`, etc., and a convenient way to access those columns in your dataframe through the pandas api extension.
+2. A tracked `state` of your dataframe based on the available columns, and the ability to dynamically build your Pandera schemas based on that state. For example, your schema may differ in your training and inference pipelines.
 
-`smart-pandas` offers a way to cleanly answer those questions with a single schema, rather than having to build multiple schemas for various stages of the project.
 
 ![Data Flow](docs/images/data_flow.png)
 
-The diagram above shows a simple example of the different 'groups' of columns you may want moving through your ML data pipeline. Those groups can vary from stage to stage, and can even be different depending on which ML lifecycle stage you're at.
+The diagram above shows a simple example of the different semantic 'groups' of columns you may want moving through your ML data pipeline. Those groups can vary from stage to stage, and can even be different depending on which ML lifecycle stage you're at.
 
 
 ## Basic Usage
 
-To use `smart-pandas`, all you need to do is swap your Pandas import to use `smart-pandas`, which will give you access to the `smart-pandas` api extension.
+To use `smart-pandas`, all you need to do is swap your Pandas import to come form `smart-pandas`, which will give you access to the pandas api extension.
 
 ```python
 from smart_pandas imnport pandas as pd
@@ -96,7 +95,8 @@ data = pd.DataFrame(
         "life_expectancy": [90, 80, 80],
     }
 )
-data.smart_pandas.init(config_path="examples/example_config.yaml")
+
+data.smart_pandas.load_config(config_path="examples/example_config.yaml")
 
 print(data.smart_pandas.raw_features)
 
@@ -108,8 +108,19 @@ print(data.smart_pandas.raw_features)
 #
 ```
 
+## Data Attributes
+Data attributes are the semantic groupings of columns in your dataframe, and are defined by the `tags` in your config file. For more information on the available tags, see the [tags documentation](docs/tags.md). Currently available data attributes are:
+- `raw_features`
+- `derived_features`
+- `model_features`
+- `target`
+- `unique_identifier`
+- `row_timestamp`
+- `metadata`
+- `weights`
+
 ## State
-`smart-pandas` tracks the synchronisation between the data columns and the configuration file through the `state` attribute. The `state` attribute represents the data at certain phases in the ML data lifecycle. The state is built up of two attributes, the `StateName` and the `MLStage`. The `StateName` represents the current point in a specific data pipeline, whereas the `MLStage` identifies which data pipeline we are in.
+`smart-pandas` tracks the synchronisation between the data columns and the configuration file through the `state` attribute. The `state` attribute represents a high level view of the data at certain phases in the ML data lifecycle. The state is built up of two attributes, the `StateName` and the `MLStage`. The `StateName` represents the current point in a specific data pipeline, whereas the `MLStage` identifies which data pipeline we are in. See the [state documentation](docs/state.md) for more details.
 
 ```python
 data.smart_pandas.state
@@ -118,7 +129,7 @@ data.smart_pandas.state
 ```
 
 ## Data Validation
-`smart-pandas` uses Pandera for building data schemas to validate the data against.
+`smart-pandas` uses Pandera for building data schemas to validate the data against. `smart-pandas` dynamically builds the schema based on the current state of the data, and the definitions in the config file.
 
 ```python
 data.smart_pandas.validate(inplace=True)
@@ -130,4 +141,3 @@ The package uses uv for it's package management, and pytest for it's unit test f
 ```shell
 uv run pytest tests/.
 ```
-

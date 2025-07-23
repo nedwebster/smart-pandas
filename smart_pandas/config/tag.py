@@ -17,8 +17,6 @@ class Tag(BaseModel):
         Whether a column with this tag is required for a valid dataset.
     compatible_with: set[str] = set()
         A set of tag names that this tag is compatible with.
-    dataset_limit: int | None = None
-        The maximum number of columns that can be assigned this tag in a dataset. If set to None, there is no limit.
 
     """
 
@@ -27,7 +25,6 @@ class Tag(BaseModel):
     config_limit: tuple[int | None, int | None] = (None, None)
     required: bool = False
     compatible_with: set[str] = set()
-    dataset_limit: int | None = None
 
     def __eq__(self, other: str) -> bool:
         return self.name == other

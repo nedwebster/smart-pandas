@@ -2,19 +2,11 @@
 
 ## Overview
 
-The DataConfig is the cornerstone of smart-pandas, providing a structured way to define and validate your dataset schemas. It allows you to specify column metadata, data types, and semantic tags that enable intelligent data processing and feature extraction.
-
-## Why Use DataConfig?
-
-- **Schema Validation**: Ensure your data matches expected types and constraints
-- **Semantic Tagging**: Classify columns by their role (features, targets, metadata, etc.)
-- **Automated Feature Extraction**: Automatically extract different types of features based on tags
-- **Documentation**: Self-documenting datasets with descriptions and metadata
-- **Reproducibility**: Consistent data processing across different environments
+The DataConfig is behind all the power of smart-pandas, providing a structured way to define and validate your dataset. It allows you to specify column metadata, data types, and semantic tags that enable intelligent data processing and feature extraction.
 
 ## Configuration File Structure
 
-DataConfig uses YAML files to define dataset schemas. Here's the basic structure:
+The SmartPandas data config uses YAML files to define dataset schemas. Here's the basic structure:
 
 ```yaml
 name: your_dataset_name
