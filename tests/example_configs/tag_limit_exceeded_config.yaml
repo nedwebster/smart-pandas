@@ -1,4 +1,3 @@
-
 {
   name: "life_expectancy_modelling_data",
   columns: [
@@ -17,7 +16,7 @@
     {
       name: "name",
       data_schema: {"dtype": "str"},
-      tags: ["metadata"],
+      tags: ["target"],
       description: "Name of the person"
     },
     {

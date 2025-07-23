@@ -5,13 +5,13 @@ from smart_pandas import pandas as pd
 
 @pytest.fixture
 def column_tags():
-    from smart_pandas.config.tag import TAG_CONFIGS, create_tag
+    from smart_pandas.config.tag import TAGS
 
-    return [create_tag(tag_name) for tag_name in TAG_CONFIGS.keys()]
+    return [TAGS[tag_name] for tag_name in TAGS.keys()]
 
 
-@pytest.fixture
-def smart_data():
+@pytest.fixture()
+def smart_data_raw():
     smart_data = pd.DataFrame(
         {
             "user_id": ["1", "2", "3"],
@@ -23,6 +23,22 @@ def smart_data():
             "life_expectancy": [80, 80, 80],
         }
     )
-    smart_data.smart_pandas.init(config_path="examples/example_config.yaml")
-    smart_data["bmi"] = smart_data["weight"] / (smart_data["height"] / 100) ** 2
+    smart_data.smart_pandas.load_config(config_path="tests/example_configs/example_config.yaml")
     return smart_data
+
+
+@pytest.fixture()
+def smart_data_processed(smart_data_raw):
+    smart_data_processed = smart_data_raw.copy()
+    smart_data_processed.smart_pandas.load_config(config_path="tests/example_configs/example_config.yaml")
+    smart_data_processed.loc[:, "bmi"] = smart_data_processed["weight"] / (smart_data_processed["height"] / 100) ** 2
+    return smart_data_processed
+
+
+@pytest.fixture
+def load_config():
+    from smart_pandas.config.config_utils import read_config
+
+    def _loader(path):
+        return read_config(f"tests/example_configs/{path}.yaml")
+    return _loader

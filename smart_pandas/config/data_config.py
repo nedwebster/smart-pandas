@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from smart_pandas.config.column_set import ColumnSet
-
+from smart_pandas.config.tag import TAGS
 
 class DataConfig(BaseModel):
     """
@@ -25,59 +25,16 @@ class DataConfig(BaseModel):
             return ColumnSet(columns=v)
         return v
 
-    @computed_field
-    def raw_features(self) -> list[str]:
+    @model_validator(mode="after")
+    def set_data_attributes(self):
+        """Set the data attributes dynamically based on the column set."""
+        for tag in TAGS.values():
+            setattr(self, tag.data_attribute_name, self._get_columns_by_tag(tag.name))
+        return self
+
+    def _get_columns_by_tag(self, tag_name: str) -> list[str]:
+        """Helper method to get column names by tag."""
         return [
             column.name for column in self.columns
-            if any(tag.name == "raw_feature" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def derived_features(self) -> list[str]:
-        return [
-            column.name
-            for column in self.columns
-            if any(tag.name == "derived_feature" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def model_features(self) -> list[str]:
-        return [
-            column.name
-            for column in self.columns
-            if any(tag.name == "model_feature" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def target(self) -> list[str]:
-        return [
-            column.name for column in self.columns
-            if any(tag.name == "target" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def unique_identifier(self) -> list[str]:
-        return [
-            column.name for column in self.columns
-            if any(tag.name == "unique_identifier" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def metadata(self) -> list[str]:
-        return [
-            column.name for column in self.columns
-            if any(tag.name == "metadata" for tag in column.tags)
-        ]
-
-    @computed_field
-    @property
-    def row_timestamp(self) -> list[str]:
-        return [
-            column.name for column in self.columns
-            if any(tag.name == "row_timestamp" for tag in column.tags)
+            if tag_name in column.tags
         ]
