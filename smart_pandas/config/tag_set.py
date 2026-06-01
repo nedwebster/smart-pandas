@@ -13,9 +13,7 @@ class TagSet(BaseModel):
 
     @field_validator("tags", mode="before")
     def parse_tags(cls, tags: list[str] | list[Tag]) -> list[Tag]:
-        if len(tags) >= 0 and isinstance(tags[0], str):
-            return [TAGS[tag] for tag in tags]
-        return tags
+        return [TAGS[tag] for tag in tags if isinstance(tag, str)]
 
     @field_validator("tags", mode="after")
     def validate_compatability(cls, tags: list[Tag]) -> list[Tag]:

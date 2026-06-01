@@ -12,6 +12,9 @@ dependencies = [
     "scikit-learn>=1.7.0",
 ]
 
+[project.optional-dependencies]
+pyspark = ["pyspark>=3.4.0"]
+
 [tool.uv]
 package = true
 dev-dependencies = [

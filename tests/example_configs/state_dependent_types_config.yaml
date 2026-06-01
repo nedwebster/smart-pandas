@@ -1,0 +1,56 @@
+{
+  name: "state_dependent_types_test",
+  columns: [
+    {
+      name: "user_id",
+      data_schema: {"dtype": "str"},
+      tags: ["unique_identifier"],
+      description: "Unique identifier"
+    },
+    {
+      name: "timestamp",
+      data_schema: {"dtype": "datetime"},
+      tags: ["row_timestamp"],
+      description: "Timestamp of the data"
+    },
+    {
+      name: "name",
+      data_schema: {"dtype": "str"},
+      tags: ["metadata"],
+      description: "Name of the person"
+    },
+    {
+      name: "age",
+      data_schema: {
+        raw: {"dtype": "str"},
+        processed: {"dtype": "int"}
+      },
+      tags: ["raw_feature", "model_feature"],
+      description: "Age - stored as string in raw, converted to int in processed"
+    },
+    {
+      name: "weight",
+      data_schema: {"dtype": "float"},
+      tags: ["raw_feature"],
+      description: "Weight of the person in kg"
+    },
+    {
+      name: "height",
+      data_schema: {"dtype": "float"},
+      tags: ["raw_feature"],
+      description: "Height of the person in cm"
+    },
+    {
+      name: "bmi",
+      data_schema: {"dtype": "float"},
+      tags: ["derived_feature", "model_feature"],
+      description: "BMI of the person"
+    },
+    {
+      name: "life_expectancy",
+      data_schema: {"dtype": "int"},
+      tags: ["target"],
+      description: "Life expectancy"
+    }
+  ]
+}

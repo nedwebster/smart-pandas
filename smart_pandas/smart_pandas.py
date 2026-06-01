@@ -3,10 +3,11 @@ import warnings
 from typing import Any
 
 import pandas as pd
+
 from smart_pandas.config.config_utils import read_config
 from smart_pandas.config.data_config import DataConfig
 from smart_pandas.state import State, StateName, StateError
-from smart_pandas.schema import build_schema
+from smart_pandas.schema import build_schema, build_pyspark_schema
 from smart_pandas.config.tag import TAGS
 
 @pd.api.extensions.register_dataframe_accessor("smart_pandas")
@@ -34,14 +35,15 @@ class SmartPandas:
         self.column_hash = hash(tuple(self._obj.columns))
 
     def load_config(
-        self, 
-        config_path: str | None = None, 
+        self,
+        config_path: str | None = None,
         config: DataConfig | None = None,
-        auto_update: bool = True
+        auto_update: bool = True,
+        state: StateName | str | None = None,
     ) -> None:
         """
         Load the configuration for the SmartPandas accessor, and update the state and schema.
-        
+
         Parameters
         ----------
         config_path : str, optional
@@ -50,6 +52,10 @@ class SmartPandas:
             DataConfig object to use directly
         auto_update : bool, default True
             Whether to automatically run update() after retrieving attributes
+        state : StateName or str, optional
+            Override the inferred state name (e.g. "raw" or StateName.RAW).
+            When provided, skips state inference. Useful when columns are
+            identical between states but types differ.
 
         Raises
         ------
@@ -67,7 +73,8 @@ class SmartPandas:
         self.config = config
         self.name = self.config.name
         self.auto_update = auto_update
-        self.state = State.from_data(data=self._obj, config=self.config)
+        self._pinned_state = StateName(state) if isinstance(state, str) else state
+        self.state = State.from_data(data=self._obj, config=self.config, state_name=self._pinned_state)
         self.schema = build_schema(self.config, self.state)
 
     def update(self) -> None:
@@ -76,7 +83,7 @@ class SmartPandas:
             self.column_hash = hash(tuple(self._obj.columns))
             self._update_state()
 
-    def _get_data_attribute(self, attr_name: str) -> pd.Series:
+    def _get_data_attribute(self, attr_name: str) -> pd.Series | None:
         """Get the data attribute of the SmartPandas accessor based on the config and the current state."""
         if attr_name not in self.state.name.incompatibilities and attr_name not in self.state.ml_stage.incompatibilities:
             return self._obj.loc[:, getattr(self.config, attr_name)]
@@ -88,12 +95,16 @@ class SmartPandas:
         Update the state of the DataFrame based on the config and current data.
 
         If the state has changed, the schema will be updated to reflect the new state.
-        
+        Skipped when state is pinned via the ``state`` parameter in ``load_config``.
+
         Raises
         ------
         RuntimeError
             If SmartPandas is not initialized
-        """            
+        """
+        if self._pinned_state is not None:
+            return
+
         old_state = copy.copy(self.state)
         self.state.infer_state(data=self._obj, config=self.config)
 
@@ -111,7 +122,7 @@ class SmartPandas:
         self, 
         inplace: bool = False,
         **kwargs
-    ) -> pd.DataFrame:
+    ) -> pd.DataFrame | None:
         """
         Validate the DataFrame using the Pandera schema based on the current state.
 
@@ -150,6 +161,29 @@ class SmartPandas:
         # Re-initialize the config after overwriting the DataFrame object pointer
         validated_data.smart_pandas.load_config(config=self.config)
         return validated_data
+
+    def set_state(self, state: StateName | str | None) -> None:
+        """Set or clear the pinned state.
+
+        Parameters
+        ----------
+        state : StateName, str, or None
+            The state to pin to (e.g. "raw", "processed", StateName.RAW).
+            Pass None to clear the pin and re-enable automatic inference.
+        """
+        self._pinned_state = StateName(state) if isinstance(state, str) else state
+        self.state = State.from_data(data=self._obj, config=self.config, state_name=self._pinned_state)
+        self.column_hash = hash(tuple(self._obj.columns))
+        self.schema = build_schema(self.config, self.state)
+
+    def to_pyspark_schema(self):
+        """Return a PySpark StructType schema for the current state.
+
+        Returns
+        -------
+        pyspark.sql.types.StructType
+        """
+        return build_pyspark_schema(self.config, self.state)
 
     def __getattribute__(self, name: str) -> Any:
         """Custom getter to allow validating and updating state before accessing data attributes."""

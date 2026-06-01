@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import pandas as pd
 
@@ -7,6 +8,16 @@ from smart_pandas.config.tag import TAGS
 
 if TYPE_CHECKING:
     from smart_pandas.config.data_config import DataConfig
+
+# Data types that the state engine can work with
+DataLike = Union[pd.DataFrame, dict]
+
+
+def _get_column_names(data: DataLike) -> Sequence[str]:
+    """Get column/key names from a DataFrame or dict."""
+    if isinstance(data, dict):
+        return data.keys()
+    return data.columns
 
 
 class StateName(Enum):
@@ -44,54 +55,57 @@ class StateInferenceEngine:
     """Engine for inferring state from data and configuration."""
     
     @staticmethod
-    def infer_ml_stage(data: pd.DataFrame, config: "DataConfig") -> MLStage:
+    def infer_ml_stage(data: DataLike, config: "DataConfig") -> MLStage:
         """
         Infer the ML stage based on presence of target columns.
-        
+
         Parameters
         ----------
-        data : pd.DataFrame
-            The data to analyze
+        data : DataLike
+            The data to analyze (DataFrame or dict)
         config : DataConfig
             The configuration object
-            
+
         Returns
         -------
         MLStage
             The inferred ML stage
         """
-        if config.target and all(col in data.columns for col in config.target):
+        columns = _get_column_names(data)
+        if config.target and all(col in columns for col in config.target):
             return MLStage.TRAINING
         return MLStage.INFERENCE
-    
+
     @staticmethod
-    def infer_state_name(data: pd.DataFrame, config: "DataConfig", ml_stage: MLStage) -> StateName:
+    def infer_state_name(data: DataLike, config: "DataConfig", ml_stage: MLStage) -> StateName:
         """
         Infer the state name based on available columns.
-        
+
         Parameters
         ----------
-        data : pd.DataFrame
-            The data to analyze
+        data : DataLike
+            The data to analyze (DataFrame or dict)
         config : DataConfig
             The configuration object
         ml_stage : MLStage
             The current ML stage
-            
+
         Returns
         -------
         StateName
             The inferred state name
         """
+        columns = _get_column_names(data)
+
         # Find missing columns in all tags
         missing_counts = {}
         for tag in TAGS.values():
             tag_cols = getattr(config, tag.data_attribute_name)
-            missing_counts[tag.data_attribute_name] = sum(1 for col in tag_cols if col not in data.columns)
-    
+            missing_counts[tag.data_attribute_name] = sum(1 for col in tag_cols if col not in columns)
+
             if tag.required and missing_counts[tag.data_attribute_name] > 0:
                 return StateName.CORRUPTED
-        
+
         if ml_stage == MLStage.TRAINING and missing_counts["target"] > 0:
             return StateName.CORRUPTED
 
@@ -145,35 +159,47 @@ class State:
         self._inference_engine = StateInferenceEngine()
 
     @classmethod
-    def from_data(cls, data: pd.DataFrame, config: "DataConfig") -> "State":
+    def from_data(
+        cls,
+        data: DataLike,
+        config: "DataConfig",
+        state_name: "StateName | None" = None,
+        ml_stage: "MLStage | None" = None,
+    ) -> "State":
         """
         Create a State instance by inferring from data and configuration.
 
         Parameters
         ----------
-        data : pd.DataFrame
-            The data to analyze
+        data : DataLike
+            The data to analyze (DataFrame or dict)
         config : DataConfig
             The configuration object
-            
+        state_name : StateName, optional
+            Override the inferred state name. When provided, skips state
+            name inference.
+        ml_stage : MLStage, optional
+            Override the inferred ML stage. When provided, skips ML stage
+            inference.
+
         Returns
         -------
         State
-            The inferred state
+            The inferred (or overridden) state
         """
         inference_engine = StateInferenceEngine()
-        ml_stage = inference_engine.infer_ml_stage(data, config)
-        state_name = inference_engine.infer_state_name(data, config, ml_stage)
+        ml_stage = ml_stage or inference_engine.infer_ml_stage(data, config)
+        state_name = state_name or inference_engine.infer_state_name(data, config, ml_stage)
         return cls(state_name, ml_stage)
 
-    def infer_state(self, data: pd.DataFrame, config: "DataConfig") -> None:
+    def infer_state(self, data: DataLike, config: "DataConfig") -> None:
         """
         Update the state based on current data and configuration.
 
         Parameters
         ----------
-        data : pd.DataFrame
-            The data to analyze
+        data : DataLike
+            The data to analyze (DataFrame or dict)
         config : DataConfig
             The configuration object
         """
