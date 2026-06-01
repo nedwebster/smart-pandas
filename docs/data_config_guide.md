@@ -42,6 +42,22 @@ data_schema:
   nullable: true    # Whether the column can contain null values (optional)
 ```
 
+### State-Dependent Data Schema
+
+When a column's type changes between states (e.g. string in RAW, integer in PROCESSED), use state-keyed schemas:
+
+```yaml
+data_schema:
+  raw:
+    dtype: str
+    nullable: true
+  processed:
+    dtype: int
+    nullable: false
+```
+
+Valid state keys are: `raw`, `processed`, `unknown`, `corrupted`.
+
 ## Column Tags
 
 Tags are the key to smart-pandas' intelligent processing. They classify columns by their semantic meaning:
@@ -147,16 +163,53 @@ columns:
 
 ## Using Your DataConfig
 
-Once you've created your configuration file, you can load it into smart-pandas:
+Once you've created your configuration file, you can load it with SmartPandas or SmartDict:
+
+### With SmartPandas (DataFrames)
 
 ```python
-from smart_pandas import SmartDataFrame
+from smart_pandas import pandas as pd
 
-# Load your data and config
-df = SmartDataFrame.from_config("path/to/your_config.yaml")
+data = pd.DataFrame({...})
+data.smart_pandas.load_config(config_path="path/to/your_config.yaml")
 
 # Access different types of features
-raw_features = df.config.raw_features
-model_features = df.config.model_features
-target = df.config.target
+data.smart_pandas.raw_features
+data.smart_pandas.model_features
+data.smart_pandas.target
+```
+
+### With SmartDict (single records)
+
+```python
+from smart_pandas.smart_dict import SmartDict
+
+record = SmartDict(
+    {"user_id": "1", "age": 31, ...},
+    config_path="path/to/your_config.yaml",
+)
+
+record.raw_features    # {"age": 31, ...}
+record.validate()
+```
+
+### Python Config (no YAML file)
+
+You can also define the config as a Python object:
+
+```python
+from smart_pandas.config.data_config import DataConfig
+
+config = DataConfig(
+    name="my_dataset",
+    columns=[
+        {"name": "age", "data_schema": {"dtype": "int"}, "tags": ["raw_feature"]},
+        {"name": "user_id", "data_schema": {"dtype": "str"}, "tags": ["unique_identifier"]},
+        ...
+    ],
+)
+
+data.smart_pandas.load_config(config=config)
+# or
+record = SmartDict({"age": 31, ...}, config=config)
 ```

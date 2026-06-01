@@ -78,7 +78,7 @@ class SmartPandas:
         self.schema = build_schema(self.config, self.state)
 
     def update(self) -> None:
-        """Update SmartPandas properties if the datas column hash has changed."""
+        """Update SmartPandas properties if the data's column hash has changed."""
         if hash(tuple(self._obj.columns)) != self.column_hash:
             self.column_hash = hash(tuple(self._obj.columns))
             self._update_state()
@@ -142,7 +142,7 @@ class SmartPandas:
         ------
         RuntimeError
             If SmartPandas is not initialized
-        ValueError
+        StateError
             If the data is in an invalid state for validation
         """
 

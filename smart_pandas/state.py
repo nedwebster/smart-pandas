@@ -115,7 +115,7 @@ class StateInferenceEngine:
         elif missing_counts["derived_features"] == len(config.derived_features) and missing_counts["raw_features"] == 0:
             return StateName.RAW
 
-        # return unknown if there are model features are partially computed
+        # return unknown if model features are partially computed
         return StateName.UNKNOWN
 
     @staticmethod

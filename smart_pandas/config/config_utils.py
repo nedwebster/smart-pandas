@@ -69,21 +69,16 @@ def read_config(path: str) -> DataConfig:
 
 def validate_config_file(path: str) -> bool:
     """Validate a config file without loading it completely.
-    
+
     Parameters
     ----------
     path : str
         Path to the configuration YAML file
-        
+
     Returns
     -------
     bool
         True if valid, False otherwise
-        
-    Raises
-    ------
-    ConfigValidationError
-        If validation fails (includes details about the issues)
     """
     try:
         read_config(path)
